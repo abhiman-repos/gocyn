@@ -91,7 +91,7 @@ export default function Mentors() {
         </div>
 
         <Link href="/admin/mentors/add">
-          <button className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 bg-indigo-600 text-white rounded-2xl shadow-md transition-colors hover:bg-indigo-700 active:scale-95 font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap">
+          <button className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 bg-indigo-600 text-white  transition-colors hover:bg-indigo-700 active:scale-95 font-bold text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap">
             <MdAdd className="text-base sm:text-md" />
             <span>Add Mentor</span>
           </button>
@@ -116,7 +116,7 @@ export default function Mentors() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white border border-gray-100 rounded-[20px] overflow-hidden flex flex-col hover:border-indigo-200 hover:shadow-xl transition-all duration-300 group h-full shadow-sm"
+                  className="bg-white border border-gray-100 rounded-[20px] overflow-hidden flex flex-col hover:border-indigo-200 hover:shadow-xl transition-all duration-300 group h-full "
                 >
                   {/* IMAGE */}
                   <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-gray-50 shrink-0">

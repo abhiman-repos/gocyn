@@ -80,7 +80,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-3 md:p-8 bg-gray-50/50 min-h-screen space-y-4 md:space-y-6">
+    <div className="p-3 md:p-8 bg-white min-h-screen space-y-4 md:space-y-6">
       {/* HEADER – scales beautifully */}
       <div className="px-1">
         <h1 className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none">
@@ -116,7 +116,7 @@ export default function Dashboard() {
           <motion.div
             key={i}
             whileHover={{ y: -3 }}
-            className="bg-white p-3 md:p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 text-center md:text-left transition-all"
+            className="bg-white p-3 md:p-5  flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 text-center md:text-left transition-all"
           >
             <div
               className={`p-2 md:p-3 rounded-xl text-xl md:text-2xl shrink-0 ${stat.color}`}
@@ -138,7 +138,7 @@ export default function Dashboard() {
       {/* MAIN CONTENT – 1 column on mobile, 2 on extra large */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
         {/* INTERNSHIPS LIST */}
-        <div className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 p-3 md:p-6 shadow-sm">
+        <div className="bg-white   p-3 md:p-6 ">
           <div className="flex items-center justify-between mb-4 md:mb-5">
             <h2 className="text-xs md:text-lg font-black text-gray-800 uppercase tracking-tight">
               Internships
@@ -189,7 +189,7 @@ export default function Dashboard() {
         </div>
 
         {/* MENTORS LIST */}
-        <div className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 p-3 md:p-6 shadow-sm">
+        <div className="bg-white  p-3 md:p-6 ">
           <div className="flex items-center justify-between mb-4 md:mb-5">
             <h2 className="text-xs md:text-lg font-black text-gray-800 uppercase tracking-tight">
               Top Mentors
@@ -239,9 +239,9 @@ export default function Dashboard() {
       </div>
 
       {/* ENROLLMENTS TABLE – scrolls horizontally on mobile */}
-      <div className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+      <div className="bg-white  overflow-hidden mb-6">
         <div className="px-4 md:px-5 py-3 md:py-4 border-b border-gray-50 flex items-center justify-between">
-          <h2 className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest leading-none">
+          <h2 className="text-[15px] md:[15px] font-black text-black-400 uppercase ttracking-tight leading-none">
             Recent Enrollments
           </h2>
           <a
@@ -254,21 +254,21 @@ export default function Dashboard() {
 
         <div className="overflow-x-auto -mx-2 md:mx-0">
           <table className="w-full min-w-[600px]">
-            <thead className="bg-gray-50">
+            <thead className="bg-blue-500">
               <tr>
-                <th className="px-3 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                <th className="px-4 md:px-5 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-black-500 uppercase whitespace-nowrap">
                   Student
                 </th>
-                <th className="px-3 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                <th className="px-4 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-black-500 uppercase whitespace-nowrap">
                   Internship
                 </th>
-                <th className="px-3 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                <th className="px-4 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-black-500 uppercase whitespace-nowrap">
                   Company
                 </th>
-                <th className="px-3 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                <th className="px-4 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-black-500 uppercase whitespace-nowrap">
                   Date
                 </th>
-                <th className="px-3 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                <th className="px-4 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-black-500 uppercase whitespace-nowrap">
                   Status
                 </th>
               </tr>

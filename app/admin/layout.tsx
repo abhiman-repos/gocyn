@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { HiOutlineMenu, HiOutlineX } from "react-icons/hi";
 import { Sidebar } from "./sidebar";
 
 export default function AdminLayout({
@@ -10,73 +9,52 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(true);
-  const [mounted, setMounted] = useState(false);
-
-  const router = useRouter();
+  const router   = useRouter();
   const pathname = usePathname();
 
-  // ✅ ensure client-side
+  // Tracks whether we've confirmed auth on the client.
+  // null  = not checked yet (show nothing to avoid flash)
+  // true  = authenticated
+  // false = not authenticated
+  const [authState, setAuthState] = useState<null | boolean>(null);
+
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    // sessionStorage is only available client-side, so this belongs in useEffect.
+    const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+    setAuthState(isAdmin);
 
-  // 🔐 Auth guard
-  useEffect(() => {
-    if (!mounted) return;
-
-    const isAdmin = sessionStorage.getItem("isAdmin");
-
-    // ❌ Not logged → redirect
-    if (pathname !== "/admin/login" && isAdmin !== "true") {
+    if (!isAdmin && pathname !== "/admin/login") {
       router.replace("/admin/login");
     }
-  }, [mounted, pathname, router]);
+  }, [pathname, router]);
 
-  // ⛔ block render until mounted
-  if (!mounted) return null;
-
-  const isAdmin = sessionStorage.getItem("isAdmin");
-
-  // ❌ block unauthorized UI
-  if (pathname !== "/admin/login" && isAdmin !== "true") {
-    return null;
-  }
-
-  // ✅ LOGIN PAGE → only login UI
+  // ── Login page ─────────────────────────────────────────────────────────────
+  // Render immediately — no auth check needed, no sidebar.
   if (pathname === "/admin/login") {
     return <>{children}</>;
   }
 
-  // ✅ ADMIN PANEL UI
+  // ── Not yet checked ────────────────────────────────────────────────────────
+  // Render nothing until we know auth status, preventing a flash of
+  // authenticated UI to an unauthenticated user.
+  if (authState === null || authState === false) {
+    return null;
+  }
+
+  // ── Authenticated admin panel ──────────────────────────────────────────────
+  // The <Sidebar> component handles:
+  //   • its own spacer div (pushes content on desktop when pinned)
+  //   • mobile drawer + backdrop
+  //   • collapsed / expanded / hover states
+  // So this layout just needs `flex` and lets Sidebar + flex-1 do the rest.
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/40 z-50 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
+      <Sidebar />
 
-      {/* Sidebar */}
-      <Sidebar open={open} setOpen={setOpen} />
-
-      {/* Main */}
-      <div className={`flex-1 transition-all ${open ? "lg:ml-72" : ""}`}>
-        <button
-          onClick={() => setOpen(!open)}
-          className="fixed top-4 left-4 z-[100] p-2 bg-white rounded-xl shadow border"
-        >
-          {open ? (
-            <HiOutlineX className="w-5 h-5" />
-          ) : (
-            <HiOutlineMenu className="w-5 h-5" />
-          )}
-        </button>
-
-        <main className="p-6 pt-0 min-h-screen">{children}</main>
-      </div>
+      {/* flex-1 fills whatever horizontal space the Sidebar spacer leaves */}
+      <main className="flex-1 min-w-0 p-6 min-h-screen">
+        {children}
+      </main>
     </div>
   );
 }

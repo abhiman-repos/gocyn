@@ -166,22 +166,37 @@ lg:translate-x-0
 
           {/* LOGO */}
           <Link
-            href="/"
-            className={`flex items-center gap-2 overflow-hidden transition-all ${
+            href=""
+            className={`flex items-center gap-2  transition-all ${
               collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
             }`}
           >
-            <Image
-              src="/logo.png"
-              alt="logo"
-              width={34}
-              height={34}
-              className="rounded-xl"
-            />
+            <div className="flex flex-col items-start gap-1.5 w-full">
+              {/* Logo + App Name */}
+              <div className="flex items-center gap-2 mt-1">
+                <div className="relative w-12 h-12 rounded-xl ">
+                  <Image
+                    src="/logo.png"
+                    alt="logo"
+                    fill
+                    className="object-cover"
+                  />
+                  {/* Optional decorative ring */}
+                  <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-400 to-purple-400 opacity-30 blur-sm -z-10" />
+                </div>
 
-            <span className="text-2xl font-black tracking-tight text-blue-600">
-              GOCYN
-            </span>
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-black tracking-tight text-gray-800 leading-tight">
+                    WELCOME BACK
+                  </span>
+                  <span className="text-[9px] font-medium text-gray-400 uppercase tracking-wider -mt-0.5">
+                    Manage your Assets
+                  </span>
+                </div>
+              </div>
+
+              {/* Divider + welcome line – adds premium feel */}
+            </div>
           </Link>
         </div>
 

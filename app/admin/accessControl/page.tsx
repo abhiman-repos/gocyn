@@ -145,12 +145,12 @@ export default function AdminAccessControl() {
   const expiredCount = admins.length - activeCount;
 
   return (
-    <div className="p-3 sm:p-6 max-w-7xl mx-auto">
+    <div className="p-3 sm:p-6 max-w-7xl mx-auto bg-white">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
-            <Shield className="w-6 h-6 sm:w-9 sm:h-9 text-blue-600" />
+          <h1 className="text-2xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
+            
             Admin Access Control
           </h1>
           <p className="text-sm text-gray-600 mt-1">
@@ -160,7 +160,7 @@ export default function AdminAccessControl() {
         <button
           onClick={fetchAdmins}
           disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-3 bg-white border border-gray-300 rounded-2xl hover:bg-gray-50 transition disabled:opacity-50 text-sm sm:text-base"
+          className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-3 bg-white  hover:bg-gray-100 transition disabled:opacity-50 text-sm sm:text-base"
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
@@ -169,18 +169,18 @@ export default function AdminAccessControl() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
-        <div className="bg-white border border-gray-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex items-center gap-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl sm:rounded-2xl flex items-center justify-center">
+        <div className="bg-white  p-4 sm:p-6 flex items-center gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12  flex items-center justify-center">
             <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Total Admins</p>
+            <p className="text-sm font-medium text-black-500">Total Admins</p>
             <p className="text-2xl sm:text-4xl font-bold text-gray-900">{admins.length}</p>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex items-center gap-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 rounded-xl sm:rounded-2xl flex items-center justify-center">
+        <div className="bg-white   p-4 sm:p-6 flex items-center gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
             <UserCheck className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
           </div>
           <div>
@@ -189,8 +189,8 @@ export default function AdminAccessControl() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex items-center gap-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-xl sm:rounded-2xl flex items-center justify-center">
+        <div className="bg-white  p-4 sm:p-6 flex items-center gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12  flex items-center justify-center">
             <UserX className="w-6 h-6 sm:w-7 sm:h-7 text-red-600" />
           </div>
           <div>
@@ -201,9 +201,8 @@ export default function AdminAccessControl() {
       </div>
 
       {/* Add Admin Form */}
-      <div className="bg-white border border-gray-200 rounded-2xl sm:rounded-3xl p-4 sm:p-8 mb-8 sm:mb-10 shadow-sm">
+      <div className="bg-white  p-4 sm:p-8 mb-8 sm:mb-10 ">
         <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center gap-2">
-          <Plus className="w-5 h-5" />
           Grant New Admin Access
         </h2>
 
@@ -212,10 +211,10 @@ export default function AdminAccessControl() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
             <input
               type="email"
-              placeholder="admin@company.com"
+              placeholder="admin@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+              className="w-full border  px-4 py-2 sm:px-5 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               required
             />
           </div>
@@ -226,7 +225,7 @@ export default function AdminAccessControl() {
               type="datetime-local"
               value={expiry}
               onChange={(e) => setExpiry(e.target.value)}
-              className="w-full border border-gray-300 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+              className="w-full border  px-4 py-2 sm:px-5 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               required
             />
           </div>
@@ -235,7 +234,7 @@ export default function AdminAccessControl() {
             <button
               type="submit"
               disabled={isSubmitting || !email.trim() || !expiry}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-semibold py-3 sm:py-4 rounded-2xl transition text-sm sm:text-base"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-semibold py-2 sm:py-2  transition text-sm sm:text-base"
             >
               {isSubmitting ? "Adding..." : "Add Admin"}
             </button>
@@ -244,33 +243,23 @@ export default function AdminAccessControl() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white border border-gray-200 rounded-2xl sm:rounded-3xl shadow-sm overflow-hidden">
+      <div className="bg-white  overflow-hidden">
         {/* Table Header */}
         <div className="px-4 sm:px-8 py-4 sm:py-5 border-b flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50">
-          <div className="flex items-center gap-3">
+          <div className="flex item-center gap-3">
             <h2 className="font-semibold text-lg sm:text-xl">All Admins</h2>
-            <span className="text-xs px-3 py-1 bg-gray-200 text-gray-600 rounded-full font-medium">
+            <span className="text-xs px-3 py-1 bg-blue-200 text-red-600 rounded-full font-medium">
               Max 3 recommended
             </span>
           </div>
 
           {/* Search & Filter */}
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <div className="relative w-full sm:w-56">
-              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 sm:pl-11 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-2xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-              />
-            </div>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-4 sm:px-5 py-2.5 sm:py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base w-full sm:w-auto"
+              className="px-4 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base w-full sm:w-auto"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -397,7 +386,7 @@ export default function AdminAccessControl() {
         </div>
       )}
 
-      <p className="text-center text-xs text-gray-500 mt-6 sm:mt-8">
+      <p className="text-center text-xs text-green-500 mt-6 sm:mt-8">
         Note: Expired admins are automatically blocked from logging in. Expiry includes minutes for precise control.
       </p>
     </div>

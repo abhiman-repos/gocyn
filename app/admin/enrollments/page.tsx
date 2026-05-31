@@ -293,11 +293,10 @@ export default function EnrollmentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">Enrollments</h1>
-          <p className="text-gray-600 mt-1">
-            {filteredEnrollments.length} application
-            {filteredEnrollments.length !== 1 ? "s" : ""} • Manage internship
-            applications
+          <h1 className="text-2xl font-bold text-gray-900">Enrollments</h1>
+          <p className="text-black-600 mt-1 ">
+            {" "}
+            Manage internship applications
           </p>
         </div>
 
@@ -305,7 +304,7 @@ export default function EnrollmentsPage() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-3 bg-white  hover:bg-gray-100 transition disabled:opacity-50 text-sm sm:text-base"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -313,22 +312,22 @@ export default function EnrollmentsPage() {
 
           <button
             onClick={() => exportToCSV(filteredEnrollments)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl transition"
+            className="flex items-center gap-2 px-6 py-2 bg-blue-500 hover:bg-green-700 text-white  transition"
           >
-            <Download className="w-4 h-4" />
-            Export All CSV
+            <Download className="w-6 h-6" />
+            Export
           </button>
 
-          <div className="flex border rounded-xl overflow-hidden bg-white">
+          <div className="flex border  overflow-hidden bg-white">
             <button
               onClick={() => setViewMode("table")}
-              className={`px-5 py-2.5 text-sm font-medium transition ${viewMode === "table" ? "bg-gray-900 text-white" : "hover:bg-gray-100"}`}
+              className={`px-5 py-2 text-sm font-medium transition ${viewMode === "table" ? "bg-green-900 text-white" : "hover:bg-green-100"}`}
             >
               Table
             </button>
             <button
               onClick={() => setViewMode("cards")}
-              className={`px-5 py-2.5 text-sm font-medium transition ${viewMode === "cards" ? "bg-gray-900 text-white" : "hover:bg-gray-100"}`}
+              className={`px-5 py-2.5 text-sm font-medium transition ${viewMode === "cards" ? "bg-red-900 text-white" : "hover:bg-red-100"}`}
             >
               Cards
             </button>
@@ -338,24 +337,41 @@ export default function EnrollmentsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6 items-end">
-        <div className="flex-1 min-w-[260px]">
-          <input
-            type="text"
-            placeholder="Search by name, email, title or company..."
-            className="w-full px-5 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="flex gap-3 items-center">
+          <div className="flex-1 min-w-[360px] relative">
+            <input
+              type="text"
+              placeholder="Search by name, email, title ..."
+              className="w-full px-5 py-3 border  focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {/* Optional: clear icon inside input when search is not empty */}
+            {search && (
+              <button
+                onClick={clearFilters}
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-black-400 hover:text-red-900"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        {/* <button
+          onClick={clearFilters}
+          className="px-5 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 flex items-center gap-2 border rounded-lg"
+        >
+          Clear
+        </button> */}
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-black-500 mb-1">
             Status
           </label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-3 border focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All</option>
             <option value="recent">Recent (24h)</option>
@@ -364,13 +380,13 @@ export default function EnrollmentsPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-black-500 mb-1">
             Company
           </label>
           <select
             value={companyFilter}
             onChange={(e) => setCompanyFilter(e.target.value)}
-            className="px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-3 border focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Companies</option>
             {uniqueCompanies.map((c) => (
@@ -380,13 +396,6 @@ export default function EnrollmentsPage() {
             ))}
           </select>
         </div>
-
-        <button
-          onClick={clearFilters}
-          className="px-5 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 flex items-center gap-2"
-        >
-          Clear Filters
-        </button>
       </div>
 
       {/* Bulk Actions */}
@@ -509,9 +518,9 @@ export default function EnrollmentsPage() {
 
       {/* Table View */}
       {viewMode === "table" && (
-        <div className="bg-white rounded-3xl shadow overflow-hidden">
+        <div className="bg-white  overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-blue-400">
               <tr>
                 <th className="px-6 py-4 w-12">
                   <input
@@ -583,7 +592,7 @@ export default function EnrollmentsPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => openDeleteDialog(enr)}
-                        className="bg-red-200 text-green-700 px-3 py-1 rounded-full hover:text-red-600"
+                        className=" px-3 py-1  hover:text-red-600"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
