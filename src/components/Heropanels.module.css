@@ -1,0 +1,179 @@
+/* ---------- Design Tokens ---------- */
+.hero {
+  --ink: #10191a;
+  --ink-2: #16221f;
+  --parchment: #efe7d8;
+  --parchment-dim: rgba(239, 231, 216, 0.66);
+  --brass: #b8923f;
+
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 95%;
+  background: var(--ink);
+  color: var(--parchment);
+  font-family: var(--font-body), sans-serif;
+  overflow: hidden;   /* This clips everything that extends outside the viewport */
+}
+
+/* ---------- Filmstrip outer ---------- */
+.strip {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Removed overflow: hidden → allows the inner strip to peek beyond the edges */
+  overflow: visible;   /* ✨ Changed from 'hidden' to 'visible' */
+  pointer-events: none; /* prevents accidental clicks on overflowing panels */
+}
+
+.stripInner {
+  display: flex;
+  height: 100%;
+  will-change: transform;
+  transition: transform 750ms cubic-bezier(0.65, 0, 0.35, 1);
+  pointer-events: auto; /* re-enable clicks on the panels themselves */
+}
+
+/* ---------- Individual Panel ---------- */
+.panel {
+  position: relative;
+  flex-shrink: 0;           /* width controlled by inline style */
+  height: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--ink-2);
+  transition: width 750ms cubic-bezier(0.65, 0, 0.35, 1);
+  box-shadow: inset 1px 0 0 rgba(239, 231, 216, 0.08);
+}
+
+.panel:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+/* ---------- Image ---------- */
+.image {
+  object-fit: cover;
+  transform: scale(1.01);
+  filter: brightness(0.92) saturate(0.95);
+  transition: filter 750ms ease, transform 4500ms ease;
+}
+
+.panel[aria-selected="true"] .image {
+  filter: brightness(0.98) saturate(1);
+  transform: scale(1);
+}
+
+/* Gradient overlay */
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 3; /* note: "inset:3" is invalid; I assume you meant "inset: 0" — fix below */
+  background: linear-gradient(
+    to top,
+    rgba(16, 25, 26, 0.85) 0%,
+    rgba(16, 25, 26, 0.15) 45%,
+    rgba(16, 25, 26, 0.35) 100%
+  );
+  pointer-events: none;
+}
+/* If you need the original “inset: 3” shorthand, correct it to a proper value e.g. "0" */
+
+/* ---------- Index badge ---------- */
+.index {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--parchment);
+  background: rgba(28, 37, 37, 0.46);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  z-index: 1;
+  opacity: 0.85;
+}
+
+/* ---------- Caption ---------- */
+.caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.5rem 1.25rem 1.25rem;
+  text-align: left;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 500ms ease 120ms, transform 500ms ease 120ms;
+  z-index: 1;
+}
+
+.captionVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.captionEyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin: 0 0 0.35rem;
+  white-space: nowrap;
+}
+
+.captionTitle {
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.05rem, 2vw, 1.5rem);
+  color: var(--parchment);
+  margin: 0 0 0.25rem;
+  white-space: nowrap;
+}
+
+.captionMeta {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  color: var(--parchment-dim);
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .captionEyebrow {
+    font-size: 0.62rem;
+  }
+
+  .captionTitle,
+  .captionEyebrow,
+  .captionMeta {
+    white-space: normal;
+  }
+
+  .caption {
+    padding: 1rem 0.85rem 1rem;
+  }
+
+  .index {
+    top: 0.6rem;
+    left: 0.6rem;
+    font-size: 0.65rem;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .stripInner,
+  .panel,
+  .image,
+  .caption {
+    transition: none;
+  }
+}

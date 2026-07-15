@@ -26,16 +26,11 @@ import { GraduationCap, FileText } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
 import FAQPage from "@/src/components/FQPage";
 import Image from "next/image";
+import HeroPanels from "@/src/components/Heropanel";
 
 const API = process.env.NEXT_PUBLIC_APP_URL;
 
 // Background Images
-const heroImages = [
-  "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2000", // team coding
-  "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2000", // planning board
-  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2000", // open laptop + code
-  "https://images.unsplash.com/photo-1581092787732-03b0d29a8aec?q=80&w=2000", // servers / backend
-];
 
 const stats = [
   { label: "Active internship", value: 150, suffix: "+", icon: BookOpen },
@@ -47,7 +42,6 @@ const stats = [
 // ================= INTERNSHIP CARD (STRUCTURE UNCHANGED) =================
 const InternshipCard = ({ item }: any) => {
   const router = useRouter();
-
 
   return (
     <motion.div
@@ -158,23 +152,11 @@ export default function Home() {
   const [internships, setInternships] = useState<any[]>([]);
   const [mentors, setMentors] = useState<any[]>([]);
   const [loadings, setLoading] = useState(true);
-  const [imgIndex, setImgIndex] = useState(0);  
-  
+  const [imgIndex, setImgIndex] = useState(0);
+
   const { user, loading } = useAuth();
 
-
-
-
   // Hero Background Auto Change
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setImgIndex((prev) => (prev + 1) % heroImages.length);
-    }, 3000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-
 
   // Fetch Data
   useEffect(() => {
@@ -198,7 +180,7 @@ export default function Home() {
     fetchData();
   }, []);
 
-  if (loading) return null; 
+  if (loading) return null;
 
   return (
     <div className="space-y-16 md:space-y-20 pb-16 md:pb-20 bg-[#fcfcfc]">
@@ -207,75 +189,13 @@ export default function Home() {
       <section className="relative min-h-[85vh] flex items-center justify-center text-center px-4 overflow-hidden">
         {/* Hero background – dark fallback always visible */}
         {/* HERO IMAGE SLIDER */}
-        <div className="absolute inset-0 z-0">
-          {heroImages.map((src, index) => (
-            <Image
-              key={src}
-              src={src}
-              alt={`Hero ${index}`}
-              fill
-              priority={index === 0}
-              sizes="100vw"
-              className={`
-        object-cover object-center
-        absolute inset-0
-        transition-opacity duration-1000 ease-in-out
-        ${index === imgIndex ? "opacity-100" : "opacity-0"}
-      `}
-            />
-          ))}
-
+        <div className="absolute inset-2 z-0">
+          <HeroPanels />
           {/* OVERLAY */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/50 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/50 z-10 pointer-events-none" />{" "}
         </div>
 
         {/* Content */}
-        <div className="relative z-20 max-w-4xl mx-auto space-y-6 px-4">
-          {/* CircularText */}
-
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-block px-4 py-1.5 bg-blue-600/20 backdrop-blur-md border border-blue-400/30 rounded-full text-blue-100 text-sm font-semibold"
-          >
-            Launch Your Future Career
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-tight"
-          >
-            Accelerate Your <br />
-            <span className="text-blue-600">Career Growth</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-base md:text-lg lg:text-xl text-gray-200 max-w-2xl mx-auto"
-          >
-            Connect with top companies through our curated internships and learn
-            from industry experts.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Link
-              href="/internships"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 sm:px-10 py-3 sm:py-3  font-bold text-base sm:text-lg inline-flex items-center gap-2 transition-all shadow-xl shadow-blue-600/30 group"
-            >
-              Explore Internships{" "}
-              <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </motion.div>
-        </div>
       </section>
 
       {/* STATS SECTION - Responsive */}
