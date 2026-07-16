@@ -200,22 +200,86 @@ export default function Home() {
 
       {/* STATS SECTION - Responsive */}
       <div className=" -mt-30 sm:-mt-28 md:-mt-32 relative z-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 bg-white p-6 lg:p-10 shadow-xl">
-          {stats.map((stat, i) => (
-            <div key={i} className="text-center group">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <stat.icon className="text-blue-600" size={24} />
+        {!user ? (
+          <>
+            <section className="relative overflow-hidden  border border-white/10 bg-gradient-to-r from-zinc-950 via-zinc-900 to-black px-6 py-6 md:px-10 shadow-xl">
+              {/* Background Glow */}
+              <div className="absolute -left-20 top-0 h-60 w-60 rounded-full bg-violet-500/20 blur-3xl" />
+              <div className="absolute right-0 top-0 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl" />
+
+              {/* Grid Pattern */}
+              <div className="absolute inset-0 opacity-[0.06]">
+                <div
+                  className="h-full w-full"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+                    backgroundSize: "40px 40px",
+                  }}
+                />
               </div>
-              <div className="text-2xl md:text-3xl font-black text-gray-900">
-                <CountUp from={0} to={stat.value} duration={2} />
-                {stat.suffix}
+
+              <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                {/* Left Content */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="max-w-2xl"
+                >
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-1 text-sm font-medium text-violet-300 backdrop-blur-md">
+                    <Sparkles className="h-4 w-4" />
+                    Partnership Program
+                  </div>
+
+                  <h2 className="text-2xl font-bold tracking-tight text-white md:text-4xl">
+                    Partner With Us & Grow Together
+                  </h2>
+
+                  <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                    Promote your brand, collaborate with our ecosystem, and
+                    unlock premium partnership opportunities through our
+                    platform.
+                  </p>
+                </motion.div>
+
+                {/* CTA */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <Link
+                    href="/partner/login"
+                    className="group inline-flex items-center gap-2 bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-300 hover:scale-105 hover:bg-zinc-200"
+                  >
+                    Become a Partner
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
+                </motion.div>
               </div>
-              <p className="text-gray-500 font-medium text-xs md:text-sm mt-1">
-                {stat.label}
-              </p>
+            </section>
+          </>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 bg-white p-6 lg:p-10 shadow-xl">
+              {stats.map((stat, i) => (
+                <div key={i} className="text-center group">
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <stat.icon className="text-blue-600" size={24} />
+                  </div>
+                  <div className="text-2xl md:text-3xl font-black text-gray-900">
+                    <CountUp from={0} to={stat.value} duration={2} />
+                    {stat.suffix}
+                  </div>
+                  <p className="text-gray-500 font-medium text-xs md:text-sm mt-1">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
 
       {/* FEATURED INTERNSHIPS SECTION */}
@@ -561,62 +625,6 @@ export default function Home() {
         <>
           <section className="relative overflow-hidden py-6 md:px-10">
             <FAQPage />
-          </section>
-          <section className="relative overflow-hidden  border border-white/10 bg-gradient-to-r from-zinc-950 via-zinc-900 to-black px-6 py-6 md:px-10 shadow-xl">
-            {/* Background Glow */}
-            <div className="absolute -left-20 top-0 h-60 w-60 rounded-full bg-violet-500/20 blur-3xl" />
-            <div className="absolute right-0 top-0 h-60 w-60 rounded-full bg-cyan-500/20 blur-3xl" />
-
-            {/* Grid Pattern */}
-            <div className="absolute inset-0 opacity-[0.06]">
-              <div
-                className="h-full w-full"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
-                  backgroundSize: "40px 40px",
-                }}
-              />
-            </div>
-
-            <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              {/* Left Content */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="max-w-2xl"
-              >
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-1 text-sm font-medium text-violet-300 backdrop-blur-md">
-                  <Sparkles className="h-4 w-4" />
-                  Partnership Program
-                </div>
-
-                <h2 className="text-2xl font-bold tracking-tight text-white md:text-4xl">
-                  Partner With Us & Grow Together
-                </h2>
-
-                <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                  Promote your brand, collaborate with our ecosystem, and unlock
-                  premium partnership opportunities through our platform.
-                </p>
-              </motion.div>
-
-              {/* CTA */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-              >
-                <Link
-                  href="/partner/login"
-                  className="group inline-flex items-center gap-2 bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-300 hover:scale-105 hover:bg-zinc-200"
-                >
-                  Become a Partner
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </motion.div>
-            </div>
           </section>
         </>
       )}

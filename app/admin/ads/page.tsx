@@ -1188,7 +1188,7 @@ export default function AdminAdsPage() {
                         form.buttonSize === "large" ? "20px" : "14px",
                     }}
                     onClick={(e) => e.stopPropagation()} // prevent double-navigate
-                  >
+                  > <> 
                     <a
                       href={form.buttonLink || "#"}
                       target="_blank"
@@ -1206,6 +1206,7 @@ export default function AdminAdsPage() {
                     >
                       {form.buttonText}
                     </a>
+                    </>
                   </div>
                 )}
               </a>
