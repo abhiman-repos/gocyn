@@ -16,6 +16,11 @@ import {
   LogOut,
   X,
 } from "lucide-react";
+import { Metadata } from "next";
+
+
+
+
 
 
 
