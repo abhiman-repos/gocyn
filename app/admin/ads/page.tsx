@@ -312,18 +312,8 @@ export default function AdminAdsPage() {
   };
 
   useEffect(() => {
-    // Any logged‑in user with a valid admin token can access this page
-    if (user) fetchAds();
-  }, [user]);
-
-  // Escape closes preview
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setShowPreview(false);
-    };
-    if (showPreview) window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [showPreview]);
+    fetchAds();
+  }, []);
 
   const handleEdit = (ad: Ad) => {
     setEditingAd(ad);
