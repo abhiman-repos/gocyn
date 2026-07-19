@@ -16,6 +16,31 @@ import {
   LogOut,
   X,
 } from "lucide-react";
+import { Metadata } from "next";
+
+
+export const metadata: Metadata = {
+  title: "Mentors | Gocyn",
+  description:
+    "Join Gocyn as a mentor and help students build real-world skills through practical projects, internships, and expert guidance. Create impactful learning experiences and grow your professional network.",
+  keywords: [
+    "Gocyn mentors",
+    "become a mentor",
+    "online mentor platform",
+    "teach online",
+    "internship mentor",
+    "industry expert",
+    "student mentorship",
+    "career guidance",
+    "project mentorship",
+    "technology mentor",
+    "software engineering mentor",
+    "professional mentor India",
+  ],
+  icons: {
+    icon: "/icon.png",
+  },
+};
 
 const navigation = [
   {
