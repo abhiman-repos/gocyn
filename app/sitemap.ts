@@ -77,13 +77,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.4,
     },
     {
-      url: `${SITE_URL}/company/about`,
+      url: `${SITE_URL}/about`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.6,
     },
     {
-      url: `${SITE_URL}/company/contactus`,
+      url: `${SITE_URL}/contactus`,
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.5,
@@ -101,7 +101,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.3,
     },
     {
-      url: `${SITE_URL}/auth/terms-and-conditions`,
+      url: `${SITE_URL}/terms-and-conditions`,
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.3,

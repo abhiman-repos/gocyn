@@ -276,7 +276,7 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           {/* Contact Us */}
                           <Link
-                            href="/company/contactus"
+                            href="/contactus"
                             className="group flex items-center justify-between bg-white border border-gray-200 hover:border-blue-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 transition-all"
                           >
                             <div className="flex items-center gap-3 sm:gap-4">
