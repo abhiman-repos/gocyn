@@ -9,11 +9,11 @@
   position: absolute;
   inset: 0;
   width: 100%;
-  height: 95%;
+  height: 100%; /* Changed from 95% to 100% so it fits perfectly */
   background: var(--ink);
   color: var(--parchment);
   font-family: var(--font-body), sans-serif;
-  overflow: hidden;   /* This clips everything that extends outside the viewport */
+  overflow: hidden;
 }
 
 /* ---------- Filmstrip outer ---------- */
@@ -22,9 +22,8 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  /* Removed overflow: hidden → allows the inner strip to peek beyond the edges */
-  overflow: visible;   /* ✨ Changed from 'hidden' to 'visible' */
-  pointer-events: none; /* prevents accidental clicks on overflowing panels */
+  overflow: visible;
+  pointer-events: none;
 }
 
 .stripInner {
@@ -32,13 +31,13 @@
   height: 100%;
   will-change: transform;
   transition: transform 750ms cubic-bezier(0.65, 0, 0.35, 1);
-  pointer-events: auto; /* re-enable clicks on the panels themselves */
+  pointer-events: auto;
 }
 
 /* ---------- Individual Panel ---------- */
 .panel {
   position: relative;
-  flex-shrink: 0;           /* width controlled by inline style */
+  flex-shrink: 0;
   height: 100%;
   border: 0;
   padding: 0;
@@ -73,7 +72,7 @@
 .panel::after {
   content: "";
   position: absolute;
-  inset: 3; /* note: "inset:3" is invalid; I assume you meant "inset: 0" — fix below */
+  inset: 0; /* ✨ Fixed invalid inset: 3 */
   background: linear-gradient(
     to top,
     rgba(16, 25, 26, 0.85) 0%,
@@ -82,7 +81,6 @@
   );
   pointer-events: none;
 }
-/* If you need the original “inset: 3” shorthand, correct it to a proper value e.g. "0" */
 
 /* ---------- Index badge ---------- */
 .index {
@@ -176,4 +174,44 @@
   .caption {
     transition: none;
   }
+}
+
+/* ========================================= */
+/* 🟢 NEW: Dots Indicator Styles             */
+/* ========================================= */
+.dotsContainer {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.dot {
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  height: 8px;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.dotInactive {
+  width: 8px;
+}
+
+.dotInactive:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.dotActive {
+  width: 28px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }

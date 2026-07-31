@@ -4,6 +4,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Fraunces, Manrope, IBM_Plex_Mono } from "next/font/google";
+import { ChevronLeft, ChevronRight } from "lucide-react"; // 🟢 Icons import kiye
 import styles from "./Heropanels.module.css";
 
 // ---------- Fonts ----------
@@ -29,7 +30,6 @@ const plexMono = IBM_Plex_Mono({
 // ---------- Types ----------
 type Track = {
   index: string;
-
   src: string;
   alt: string;
 };
@@ -38,31 +38,26 @@ type Track = {
 const TRACKS: Track[] = [
   {
     index: "01",
-
     src: "/logo1.png",
     alt: "Designer reviewing wireframes on a large monitor",
   },
   {
     index: "02",
-
     src: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2000",
     alt: "Data visualisation on a dark dashboard",
   },
   {
     index: "03",
-
     src: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2000",
     alt: "Typewriter with a page mid-sentence",
   },
   {
     index: "04",
-
     src: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2000",
     alt: "Analog mixing console in a recording studio",
   },
   {
     index: "05",
-    
     src: "/logo1.png",
     alt: "Server racks in a data centre",
   },
@@ -76,19 +71,20 @@ export default function HeroPanels({ className }: { className?: string }) {
   const [paused, setPaused] = useState(false);
   const direction = useRef<1 | -1>(1);
 
-  // Detect mobile to adjust panel sizes
+  // Detect mobile screen properly (specifically < 640px)
   const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1080px)");
+    const mq = window.matchMedia("(max-width: 640px)");
     setIsMobile(mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // Percentages (of container width) for inactive vs active panels
-  const base = isMobile ? 18 : 12;
-  const large = isMobile ? 46 : 60;
+  // Percentages:
+  const base = isMobile ? 3 : 5;    // Mobile par 3%, Desktop par 5%
+  const large = isMobile ? 94 : 88; 
 
   // Autoplay with bounce
   useEffect(() => {
@@ -112,27 +108,31 @@ export default function HeroPanels({ className }: { className?: string }) {
     return () => clearInterval(id);
   }, [paused]);
 
-  // ---- Clamped centering math (the actual bug) ----
-  // Total width of the strip's content, as a % of the container.
+  // Clamped centering math
   const totalWidthPct = (TRACKS.length - 1) * base + large;
-  // How much wider the strip is than its container — this is the only
-  // range we're allowed to shift within.
   const maxShiftPct = Math.max(totalWidthPct - 100, 0);
 
-  // Sum of the widths of every panel before the active one.
   const prevWidthsPct = active * base;
-  // Where the active panel's center sits inside the strip's own content.
   const activeCenterPct = prevWidthsPct + large / 2;
-  // Shift needed to bring that center to the container's center (50%).
   const idealShiftPct = activeCenterPct - 50;
-  // Clamp so we never drag the strip past its real edges — this is what
-  // keeps panel 0 and the last panel fully visible instead of overshooting
-  // into empty space.
   const shiftPct = Math.min(Math.max(idealShiftPct, 0), maxShiftPct);
+
+  // 🟢 Arrow Navigation Functions
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPaused(true); // Click karne par autoplay pause ho jayega
+    setActive((prev) => (prev === 0 ? TRACKS.length - 1 : prev - 1));
+  };
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPaused(true);
+    setActive((prev) => (prev === TRACKS.length - 1 ? 0 : prev + 1));
+  };
 
   return (
     <section
-      className={`${styles.hero} ${fraunces.variable} ${manrope.variable} ${plexMono.variable} ${className ?? ""}`}
+      className={`relative overflow-hidden ${styles.hero} ${fraunces.variable} ${manrope.variable} ${plexMono.variable} ${className ?? ""}`}
     >
       <div className={styles.strip} role="tablist" aria-label="Course tracks">
         <div
@@ -155,13 +155,15 @@ export default function HeroPanels({ className }: { className?: string }) {
                   setPaused(true);
                   setActive(i);
                 }}
-                onMouseEnter={() => {
+                onTouchStart={() => {
                   setPaused(true);
                   setActive(i);
                 }}
-                onFocus={() => {
-                  setPaused(true);
-                  setActive(i);
+                onMouseEnter={() => {
+                  if (!isMobile) {
+                    setPaused(true);
+                    setActive(i);
+                  }
                 }}
                 onMouseLeave={() => setPaused(false)}
                 onBlur={() => setPaused(false)}
@@ -170,22 +172,92 @@ export default function HeroPanels({ className }: { className?: string }) {
                   src={track.src}
                   alt={track.alt}
                   fill
-                  sizes="(max-width: 768px) 100vw, 40vw"
+                  sizes="(max-width: 640px) 70vw, (max-width: 1024px) 50vw, 40vw"
                   className={styles.image}
                   priority={i === 0}
                 />
                 <span className={styles.index}>{track.index}</span>
                 <div
                   className={`${styles.caption} ${isActive ? styles.captionVisible : ""}`}
-                >
-
-                </div>
+                />
               </button>
             );
           })}
         </div>
       </div>
+
+      {/* 🟢 Left Arrow Button */}
+      <button
+        onClick={handlePrev}
+        style={{
+          position: 'absolute',
+          left: '16px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 999999,
+          background: 'rgba(0, 0, 0, 0.4)',
+          color: 'white',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '50%',
+          width: '48px',
+          height: '48px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          backdropFilter: 'blur(4px)',
+          transition: 'all 0.3s ease',
+          pointerEvents: 'auto'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.8)';
+          e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.4)';
+          e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+        }}
+        aria-label="Previous Slide"
+      >
+        <ChevronLeft size={28} />
+      </button>
+
+      {/* 🟢 Right Arrow Button */}
+      <button
+        onClick={handleNext}
+        style={{
+          position: 'absolute',
+          right: '16px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 999999,
+          background: 'rgba(0, 0, 0, 0.4)',
+          color: 'white',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '50%',
+          width: '48px',
+          height: '48px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          backdropFilter: 'blur(4px)',
+          transition: 'all 0.3s ease',
+          pointerEvents: 'auto'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.8)';
+          e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.4)';
+          e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+        }}
+        aria-label="Next Slide"
+      >
+        <ChevronRight size={28} />
+      </button>
+
     </section>
   );
 }
-

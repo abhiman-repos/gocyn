@@ -14,6 +14,7 @@ import {
   MdClose,
   MdLogout,
   MdAddModerator,
+  MdSchool,
 } from "react-icons/md";
 import { HiDocument } from "react-icons/hi";
 import Image from "next/image";
@@ -23,6 +24,7 @@ import AdModal from "@/src/components/MentorPromo";
 
 const NAV_ITEMS = [
   { path: "/admin", label: "Dashboard", icon: MdDashboard },
+  { path: "/admin/course", label: "Courses", icon: MdSchool }, // <-- Added Courses
   { path: "/admin/internships", label: "Internships", icon: MdWork },
   { path: "/admin/mentors", label: "Mentors", icon: MdAdminPanelSettings },
   { path: "/admin/accessControl", label: "Controls", icon: MdControlCamera },
