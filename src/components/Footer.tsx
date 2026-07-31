@@ -90,7 +90,7 @@ export default function Footer() {
               <ul className="space-y-3 text-[15px] text-gray-600">
                 <li><Link href="/about" className="hover:text-blue-600 transition-colors">About Us</Link></li>
                 <li><Link href="/contactus" className="hover:text-blue-600 transition-colors">Contact</Link></li>
-                <li><Link href="/auth/terms-and-conditions" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link></li>
+                <li><Link href="/terms-and-conditions" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link></li>
               </ul>
             </div>
 

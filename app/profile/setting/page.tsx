@@ -261,7 +261,7 @@ export default function SettingsPage() {
                             <>Verifying &amp; Deleting Account...</>
                           ) : (
                             <>
-                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                              <Trash2 className="w-4 h-4 sm:w-4 sm:h-" />
                               Permanently Delete My Account
                             </>
                           )}

@@ -17,9 +17,6 @@ import {
   X,
 } from "lucide-react";
 
-
-
-
 const navigation = [
   {
     name: "Overview",
@@ -179,7 +176,7 @@ lg:translate-x-0
               <div className="flex items-center gap-2 mt-1">
                 <div className="relative w-12 h-12 rounded-xl ">
                   <Image
-                    src="/public/logo.png"
+                    src="/mentor.png"
                     alt="logo"
                     fill
                     className="object-cover"
@@ -331,7 +328,9 @@ lg:translate-x-0
         </header>
 
         {/* PAGE CONTENT */}
-
+       <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="mx-auto w-full max-w-7xl">{children}</div>
+        </main>
       </div>
     </div>
   );

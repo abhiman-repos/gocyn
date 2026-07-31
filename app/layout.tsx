@@ -42,9 +42,11 @@ export default function RootLayout({
           <AuthProvider>
             <Navbar />
 
-            <main>{children}</main>
+            <main>
+              {children}
+              <Footer />
+            </main>
             <MentorPromoModal />
-            <Footer />
           </AuthProvider>
         </GoogleOAuthProvider>
       </body>

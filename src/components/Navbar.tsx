@@ -14,6 +14,8 @@ import {
   FiTrendingUp,
   FiMenu,
   FiX,
+  FiBook,
+  FiHome,
 } from "react-icons/fi";
 import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
@@ -55,7 +57,7 @@ const getSuggestions = (query: string): Suggestion[] => {
 
 export default function Navbar() {
   // ==========================================
-  // 1. ALL HOOKS MUST GO HERE AT THE TOP
+  // 1. ALL HOOKS GO HERE AT THE TOP
   // ==========================================
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -63,7 +65,7 @@ export default function Navbar() {
   const [results, setResults] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [isMounted, setIsMounted] = useState(false); 
+  const [isMounted, setIsMounted] = useState(false);
 
   const pathname = usePathname() || "";
   const router = useRouter();
@@ -123,7 +125,6 @@ export default function Navbar() {
     "/auth/forgot-password",
     "/auth/reset-password",
     "/internships/[id]",
-    
   ];
 
   const shouldHide =
@@ -194,7 +195,7 @@ export default function Navbar() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions) return;
 
-    const maxIndex = results.length > 0 ? results.length - 1 : 0; 
+    const maxIndex = results.length > 0 ? results.length - 1 : 0;
 
     switch (e.key) {
       case "ArrowDown":
@@ -226,8 +227,12 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center shrink-0" aria-label="Home">
-            <div className=" flex items-center justify-center ">
+          <Link
+            href="/"
+            className="flex items-center shrink-0"
+            aria-label="Home"
+          >
+            <div className="flex items-center justify-center">
               <Image
                 src="/logo.png"
                 alt="Company Logo"
@@ -239,9 +244,13 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Search Bar - YouTube Style */}
-          <div className="flex-1 max-w-xl mx-4 relative">
-            <form onSubmit={handleSearchSubmit} className="relative" role="search">
+          {/* Mobile Search Bar (visible only on small screens) */}
+          <div className="flex-1 max-w-xl mx-4 relative md:hidden">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="relative"
+              role="search"
+            >
               <div className="relative group">
                 <FiSearch
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
@@ -265,7 +274,7 @@ export default function Navbar() {
               </div>
             </form>
 
-            {/* Suggestions Dropdown */}
+            {/* Suggestions Dropdown (mobile) */}
             <AnimatePresence>
               {showSuggestions && (results.length > 0 || search.trim()) && (
                 <motion.div
@@ -291,9 +300,15 @@ export default function Navbar() {
                           }`}
                         >
                           {item.type === "search" ? (
-                            <FiSearch className="text-gray-400 shrink-0" size={18} />
+                            <FiSearch
+                              className="text-gray-400 shrink-0"
+                              size={18}
+                            />
                           ) : (
-                            <FiTrendingUp className="text-gray-400 shrink-0" size={18} />
+                            <FiTrendingUp
+                              className="text-gray-400 shrink-0"
+                              size={18}
+                            />
                           )}
                           <span className="text-sm text-gray-700 truncate">
                             {item.label}
@@ -311,7 +326,9 @@ export default function Navbar() {
                           }`}
                         >
                           <FiSearch size={18} />
-                          <span className="truncate">Search for &quot;{search}&quot;</span>
+                          <span className="truncate">
+                            Search for &quot;{search}&quot;
+                          </span>
                         </div>
                       )}
                 </motion.div>
@@ -319,19 +336,99 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Desktop: Search Icon + Navigation Links (visible from md breakpoint) */}
+          <div className="hidden md:flex items-center gap-6">
+            {/* Search Icon – navigates to /search page */}
+            <Link
+              href="/search"
+              className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-full hover:bg-gray-100"
+              aria-label="Search"
+            >
+              <FiSearch size={22} />
+            </Link>
+
+            {/* Navigation Links */}
+            <Link
+              href="/"
+              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+            >
+              Home
+            </Link>
+            <Link
+              href="/internships"
+              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+            >
+              Internship
+            </Link>
+            <Link
+              href="/courses"
+              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+            >
+              Courses
+            </Link>
+            <Link
+              href="/mentors"
+              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+            >
+              Mentors
+            </Link>
+
+            {/* Authentication Links */}
+            {user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  Profile
+                </Link>
+                <Link
+                  href="/profile/setting"
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  Setting
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    closeMenu();
+                  }}
+                  className="text-sm font-medium text-red-500 hover:text-red-700 transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="text-sm font-semibold bg-blue-500 text-white px-5 py-2.5 rounded-full hover:bg-blue-600 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button (visible only on small screens) */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             aria-label={isOpen ? "Close Menu" : "Open Menu"}
             aria-expanded={isOpen}
-            className="shrink-0 text-gray-700 hover:text-gray-900 transition"
+            className="md:hidden shrink-0 text-gray-700 hover:text-gray-900 transition"
           >
             {isOpen ? <FiX size={26} /> : <FiMenu size={26} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu Dropdown (unchanged, remains as implemented) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -341,21 +438,35 @@ export default function Navbar() {
             className="bg-white border-b shadow-lg md:shadow-xl md:absolute md:top-16 md:right-40 md:left-auto md:w-72 md:rounded-3xl md:overflow-hidden z-50"
           >
             <div className="px-6 py-6 md:py-4 space-y-1">
-              
-              {/* Internship */}
-              <Link 
-                href="/internships" 
-                className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] rounded-2xl font-medium transition-all duration-200"
+              <Link
+                href="/"
+                className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] font-medium transition-all duration-200"
+                onClick={closeMenu}
+              >
+                <FiHome size={20} className="text-gray-500" />
+                Home
+              </Link>
+
+              <Link
+                href="/internships"
+                className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] font-medium transition-all duration-200"
                 onClick={closeMenu}
               >
                 <FiBriefcase size={20} className="text-gray-500" />
                 Internship
               </Link>
-              
-              {/* Mentors */}
-              <Link 
-                href="/mentors" 
-                className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] rounded-2xl font-medium transition-all duration-200"
+
+              <Link
+                href="/courses"
+                className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] font-medium transition-all duration-200"
+                onClick={closeMenu}
+              >
+                <FiBook size={20} className="text-gray-500" />
+                Courses
+              </Link>
+              <Link
+                href="/mentors"
+                className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] font-medium transition-all duration-200"
                 onClick={closeMenu}
               >
                 <FiUsers size={20} className="text-gray-500" />
@@ -364,33 +475,30 @@ export default function Navbar() {
 
               {user ? (
                 <>
-                  {/* Profile */}
-                  <Link 
-                    href="/profile" 
-                    className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] rounded-2xl font-medium transition-all duration-200"
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] font-medium transition-all duration-200"
                     onClick={closeMenu}
                   >
                     <FiUser size={20} className="text-gray-500" />
                     Profile
                   </Link>
 
-                  {/* Settings */}
-                  <Link 
-                    href="/profile/setting" 
-                    className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] rounded-2xl font-medium transition-all duration-200"
+                  <Link
+                    href="/profile/setting"
+                    className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] font-medium transition-all duration-200"
                     onClick={closeMenu}
                   >
                     <FiSettings size={20} className="text-gray-500" />
                     Settings
                   </Link>
 
-                  {/* Logout */}
-                  <button 
+                  <button
                     onClick={() => {
                       logout();
                       closeMenu();
                     }}
-                    className="flex items-center gap-3 w-full text-left px-4 py-3.5 text-red-500 hover:bg-red-50 hover:scale-[1.02] rounded-2xl font-medium transition-all duration-200"
+                    className="flex items-center gap-3 w-full text-left px-4 py-3.5 text-red-500 hover:bg-red-50 hover:scale-[1.02] font-medium transition-all duration-200"
                   >
                     <FiLogOut size={20} className="text-red-500" />
                     Logout
@@ -398,19 +506,18 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  {/* Login */}
-                  <Link 
-                    href="/login" 
-                    className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] rounded-2xl font-medium transition-all duration-200"
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] font-medium transition-all duration-200"
                     onClick={closeMenu}
                   >
                     <FiLogIn size={20} className="text-gray-500" />
                     Login
                   </Link>
-                  <Link 
+                  <Link
                     href="/register"
                     onClick={closeMenu}
-                    className="block mt-4 bg-blue-600 text-white px-6 py-3.5 rounded-3xl text-center font-semibold hover:bg-blue-700 transition"
+                    className="block mt-4 bg-blue-500 text-white px-6 py-2.5 text-center font-semibold hover:bg-blue-700 transition"
                   >
                     Get Started
                   </Link>
