@@ -37,8 +37,83 @@ const stats = [
   { label: "Expert Mentors", value: 80, suffix: "+", icon: Users },
   { label: "Success Rate", value: 94, suffix: "%", icon: Star },
   { label: "Hours of Content", value: 5, suffix: "k+", icon: Clock },
+
 ];
 
+// ================= COURSE CARD =================
+const CourseCard = ({ item }: any) => {
+  const router = useRouter();
+
+  return (
+    <motion.div
+      whileHover={{ y: -8 }}
+      onClick={() => router.push(`/course/${item._id}`)}
+      className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group cursor-pointer w-full"
+    >
+      {/* IMAGE & BADGE */}
+      <div className="relative h-40 sm:h-44 overflow-hidden rounded-t-2xl">
+        <img
+          src={item.imageUrl || "/placeholder.jpg"}
+          className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
+          alt={item.title}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+
+        {/* Category / Level Badge (e.g., "Beginner", "Best Seller", "Live") */}
+        <div className="absolute top-3 right-3 text-xs px-3 py-1 rounded-full bg-blue-600/90 text-white font-semibold backdrop-blur-md">
+          {item.level || item.category || "Course"}
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div className="p-4 sm:p-5 space-y-3">
+        {/* Title */}
+        <h3 className="text-sm sm:text-base font-bold text-gray-900 group-hover:text-blue-600 transition line-clamp-1">
+          {item.title}
+        </h3>
+
+        {/* Instructor or Platform Name */}
+        <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1.5">
+          <FaUserGraduate className="text-gray-400" />
+          By {item.instructor || item.provider || "Industry Expert"}
+        </p>
+
+        {/* Course Metadata (Duration & Lessons/Rating) */}
+        <div className="flex justify-between text-xs sm:text-sm text-gray-600 pt-2">
+          <span className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-lg">
+            <Clock size={14} className="text-blue-600" />
+            {item.duration || "10+ Hours"}
+          </span>
+
+          {/* Location ki jagah humne BookOpen (Lectures) ya Star (Rating) laga diya hai */}
+          <span className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg">
+            <BookOpen size={14} className="text-purple-600" />
+            {item.lessons ? `${item.lessons} Lessons` : `${item.rating || "4.8"} ★`}
+          </span>
+        </div>
+
+        {/* FOOTER: Price & CTA */}
+        <div className="flex justify-between items-center pt-3 border-t">
+          <div className="flex items-center gap-1">
+            <span className="text-base sm:text-lg font-bold text-blue-600 flex items-center">
+              <IndianRupee size={16} /> {item.price || "Free"}
+            </span>
+            {item.originalPrice && (
+              <span className="text-xs text-gray-400 line-through">
+                ₹{item.originalPrice}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-700 group-hover:text-blue-600">
+            <Sparkles size={14} className="text-yellow-500" />
+            Start Learning
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 // ================= INTERNSHIP CARD (STRUCTURE UNCHANGED) =================
 const InternshipCard = ({ item }: any) => {
   const router = useRouter();
@@ -153,6 +228,7 @@ export default function Home() {
   const [mentors, setMentors] = useState<any[]>([]);
   const [loadings, setLoading] = useState(true);
   const [imgIndex, setImgIndex] = useState(0);
+  const [courses, setCourses] = useState<any[]>([]);
 
   const { user, loading } = useAuth();
 
@@ -162,15 +238,18 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [iRes, mRes] = await Promise.all([
+        const [iRes, mRes, cRes] = await Promise.all([
           fetch(`${API}/upload/internships/list/`),
           fetch(`${API}/api/mentors/list/`),
+          fetch(`${API}/api/courses/list/`)
         ]);
         const internshipsData = await iRes.json();
         const mentorsData = await mRes.json();
-
+        const coursesData = await cRes.json();
+        
         setInternships(internshipsData.slice(0, 4));
         setMentors(mentorsData.slice(0, 4));
+        setCourses(coursesData.slice(0, 4));
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -305,12 +384,44 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {loadings
             ? [1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-full h-72 sm:h-80 md:h-84 bg-gray-100 animate-pulse rounded-3xl"
-                />
-              ))
+              <div
+                key={i}
+                className="w-full h-72 sm:h-80 md:h-84 bg-gray-100 animate-pulse rounded-3xl"
+              />
+            ))
             : internships.map((i) => <InternshipCard key={i._id} item={i} />)}
+        </div>
+      </section>
+
+      {/* FEATURED COURSES SECTION */}
+      <section className="max-w-7xl mx-auto px-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10 px-2">
+          <div className="space-y-1">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900">
+              Popular Courses
+            </h2>
+            <p className="text-gray-500">
+              Upgrade your skills with industry-recognized certification courses.
+            </p>
+          </div>
+          <Link
+            href="/courses"
+            className="text-blue-600 font-bold hover:underline flex items-center gap-1 whitespace-nowrap"
+          >
+            View All Courses <ArrowRight size={18} />
+          </Link>
+        </div>
+
+        {/* Grid Container */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+          {loadings
+            ? [1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="w-full h-72 sm:h-80 md:h-84 bg-gray-100 animate-pulse rounded-3xl"
+              />
+            ))
+            : courses.map((c) => <CourseCard key={c._id} item={c} />)}
         </div>
       </section>
 
@@ -611,12 +722,12 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {loadings
             ? [1, 2, 3, 4].map((i) => (
-                // ✅ FIXED SKELETON
-                <div
-                  key={i}
-                  className="w-full aspect-[4/5] bg-gray-100 animate-pulse rounded-2xl"
-                />
-              ))
+              // ✅ FIXED SKELETON
+              <div
+                key={i}
+                className="w-full aspect-[4/5] bg-gray-100 animate-pulse rounded-2xl"
+              />
+            ))
             : mentors.map((m) => <MentorCard key={m._id} mentor={m} />)}
         </div>
       </section>
