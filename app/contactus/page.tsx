@@ -548,6 +548,19 @@ export default function ContactPage() {
               {/* PLATFORM INFO CARD */}
               {/* ================================================= */}
 
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+
+                <div className="flex items-start gap-4">
+
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
+
+                    <FiBriefcase size={20} />
+
+                  </div>
+
+                </div>
+
+              </div>
 
             </motion.div>
 
