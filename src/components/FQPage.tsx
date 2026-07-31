@@ -344,7 +344,7 @@ export default function FAQPage() {
             <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-8">
               Everything about Gocyn internships, courses, and certificates — answered.
               Can't find your answer?{" "}
-              <Link href="/company/contactus" className="text-blue-600 hover:underline font-medium">
+              <Link href="/contactus" className="text-blue-600 hover:underline font-medium">
                 Ask us directly →
               </Link>
             </p>
@@ -494,7 +494,7 @@ export default function FAQPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center relative z-10">
               <Link
-                href="/company/contactus"
+                href="/contactus"
                 className="inline-flex items-center justify-center gap-2 bg-white text-blue-700 font-semibold px-6 py-3 hover:bg-blue-50 transition-colors"
               >
                 <Icons.MessageCircle />

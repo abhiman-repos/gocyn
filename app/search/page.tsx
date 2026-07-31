@@ -1,0 +1,18 @@
+"use client";
+
+import { Suspense } from "react";
+import SearchContent from "./search/SearchContent";
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
+      <SearchContent />
+    </Suspense>
+  );
+}

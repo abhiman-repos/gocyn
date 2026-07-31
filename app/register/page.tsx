@@ -290,7 +290,7 @@ export default function Register() {
               >
                 I agree to the{" "}
                 <Link
-                  href="/auth/terms-and-conditions"
+                  href="/terms-and-conditions"
                   className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium underline"
                 >
                   Terms and Conditions

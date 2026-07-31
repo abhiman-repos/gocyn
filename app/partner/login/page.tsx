@@ -117,6 +117,7 @@ const languageOptions = [
   "Marathi",
   "Kannada",
   "Malayalam",
+  "Other"
 ];
 
 const defaultSignupData: MentorSignupData = {
