@@ -558,26 +558,6 @@ export default function ContactPage() {
 
                   </div>
 
-                  <div>
-
-                    <p className="font-semibold text-slate-900">
-
-                      Internships & Opportunities
-
-                    </p>
-
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-
-                      Gocyn is focused on helping
-                      students explore internship
-                      opportunities while creating
-                      meaningful connections with
-                      organizations and growing teams.
-
-                    </p>
-
-                  </div>
-
                 </div>
 
               </div>
