@@ -2,24 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FaTwitter, FaInstagram, FaLinkedinIn } from "react-icons/fa";
 import {
-  Building2,
-  Info,
-  Contact,
-  FileText,
-  PanelsTopLeft,
   MessageCircleQuestion,
   ShieldCheck,
-  Layers3,
   BriefcaseBusiness,
   UsersRound,
   BadgeCheck,
   Sparkles,
+  FileText,
 } from "lucide-react";
 
 export default function Footer() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render footer during initial hydration
+  if (!mounted) return null;
 
   const hideRoutes = [
     "/admin",
@@ -43,11 +47,8 @@ export default function Footer() {
   return (
     <footer className="bg-white border-t border-gray-100 pt-16 pb-12 mt-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-
-        {/* Main Content */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
 
-          {/* Brand Section */}
           <div className="md:col-span-5">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-4xl font-bold tracking-tighter">
@@ -60,7 +61,6 @@ export default function Footer() {
               internships and industry-recognized certifications.
             </p>
 
-            {/* Social Icons */}
             <div className="flex gap-3 mt-8">
               <a
                 href="https://twitter.com"
@@ -94,54 +94,114 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Navigation Links */}
           <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-10">
 
-            {/* Platform */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-5 text-sm tracking-widest uppercase flex items-center gap-2"> Platform</h4>
+              <h4 className="font-semibold text-gray-900 mb-5 text-sm tracking-widest uppercase">
+                Platform
+              </h4>
+
               <ul className="space-y-3 text-[15px] text-gray-600">
-                <li><Link href="/internships" className="hover:text-blue-600 transition-colors flex items-center gap-2"><BriefcaseBusiness size={16} strokeWidth={1.8} /> All Internships</Link></li>
-                <li><Link href="/mentors" className="hover:text-blue-600 transition-colors flex items-center gap-2"><UsersRound size={16} strokeWidth={1.8} /> Our Mentors</Link></li>
-                <li><Link href="/verify" className="hover:text-blue-600 transition-colors flex items-center gap-2"><BadgeCheck size={16} strokeWidth={1.8} /> Verify Certificate</Link></li>
+                <li>
+                  <Link href="/internships" className="hover:text-blue-600 transition-colors flex items-center gap-2">
+                    <BriefcaseBusiness size={16} />
+                    All Internships
+                  </Link>
+                </li>
+
+                <li>
+                  <Link href="/mentors" className="hover:text-blue-600 transition-colors flex items-center gap-2">
+                    <UsersRound size={16} />
+                    Our Mentors
+                  </Link>
+                </li>
+
+                <li>
+                  <Link href="/verify" className="hover:text-blue-600 transition-colors flex items-center gap-2">
+                    <BadgeCheck size={16} />
+                    Verify Certificate
+                  </Link>
+                </li>
               </ul>
             </div>
 
-            {/* Company */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-5 text-sm tracking-widest uppercase flex items-center gap-2"> Company</h4>
+              <h4 className="font-semibold text-gray-900 mb-5 text-sm tracking-widest uppercase">
+                Company
+              </h4>
+
               <ul className="space-y-3 text-[15px] text-gray-600">
-                <li><Link href="/about" className="hover:text-blue-600 transition-colors">About Us</Link></li>
-                <li><Link href="/contactus" className="hover:text-blue-600 transition-colors">Contact</Link></li>
-                <li><Link href="/terms-and-conditions" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link></li>
+                <li>
+                  <Link href="/about" className="hover:text-blue-600 transition-colors">
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contactus" className="hover:text-blue-600 transition-colors">
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms-and-conditions" className="hover:text-blue-600 transition-colors">
+                    Terms & Conditions
+                  </Link>
+                </li>
               </ul>
             </div>
 
-            {/* Resources */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-5 text-sm tracking-widest uppercase flex items-center gap-2"> Resources</h4>
+              <h4 className="font-semibold text-gray-900 mb-5 text-sm tracking-widest uppercase">
+                Resources
+              </h4>
+
               <ul className="space-y-3 text-[15px] text-gray-600">
-                <li><Link href="/faq" className="hover:text-blue-600 transition-colors flex items-center gap-2"><MessageCircleQuestion size={16} strokeWidth={1.8} /> FAQ</Link></li>
-                <li><Link href="/privacy-policy" className="hover:text-blue-600 transition-colors flex items-center gap-2"><ShieldCheck size={16} strokeWidth={1.8} /> Privacy Policy</Link></li>
+                <li>
+                  <Link href="/faq" className="hover:text-blue-600 transition-colors flex items-center gap-2">
+                    <MessageCircleQuestion size={16} />
+                    FAQ
+                  </Link>
+                </li>
+
+                <li>
+                  <Link href="/privacy-policy" className="hover:text-blue-600 transition-colors flex items-center gap-2">
+                    <ShieldCheck size={16} />
+                    Privacy Policy
+                  </Link>
+                </li>
               </ul>
             </div>
-
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-gray-100 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
           <p className="text-center md:text-left">
-            © 2026 <span className="font-semibold text-gray-800">Gocyn</span>. All rights reserved.
+            © 2026 <span className="font-semibold text-gray-800">Gocyn</span>.
+            All rights reserved.
           </p>
 
           <div className="flex flex-wrap justify-center md:justify-end items-center gap-x-6 gap-y-3 text-xs">
-            <Link href="/privacy-policy" className="hover:text-blue-600 transition-colors flex items-center gap-1.5"><ShieldCheck size={14} strokeWidth={1.8} /> Privacy</Link>
-            <Link href="/auth/terms-and-conditions" className="hover:text-blue-600 transition-colors flex items-center gap-1.5"><FileText size={14} strokeWidth={1.8} /> Terms</Link>
-            <span className="flex items-center gap-1.5 whitespace-nowrap"><Sparkles size={14} /> Empowering Future Professionals</span>
+            <Link
+              href="/privacy-policy"
+              className="hover:text-blue-600 transition-colors flex items-center gap-1.5"
+            >
+              <ShieldCheck size={14} />
+              Privacy
+            </Link>
+
+            <Link
+              href="/auth/terms-and-conditions"
+              className="hover:text-blue-600 transition-colors flex items-center gap-1.5"
+            >
+              <FileText size={14} />
+              Terms
+            </Link>
+
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <Sparkles size={14} />
+              Empowering Future Professionals
+            </span>
           </div>
         </div>
-
       </div>
     </footer>
   );

@@ -354,12 +354,7 @@ export default function Navbar() {
             >
               Home
             </Link>
-            <Link
-              href="/internships"
-              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              Internship
-            </Link>
+            
             <Link
               href="/courses"
               className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
@@ -447,14 +442,6 @@ export default function Navbar() {
                 Home
               </Link>
 
-              <Link
-                href="/internships"
-                className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 hover:scale-[1.02] font-medium transition-all duration-200"
-                onClick={closeMenu}
-              >
-                <FiBriefcase size={20} className="text-gray-500" />
-                Internship
-              </Link>
 
               <Link
                 href="/courses"

@@ -46,6 +46,7 @@ export default function RootLayout({
               {children}
               <Footer />
             </main>
+            
             <MentorPromoModal />
           </AuthProvider>
         </GoogleOAuthProvider>
