@@ -328,8 +328,6 @@ export default function SettingsPage() {
                           Course approvals and course recommendations
                         </p>
                       </div>
-                    </div>
-                  </div>
 
                       <div className="p-6 space-y-6">
                         <p className="text-gray-600 text-sm leading-relaxed">
