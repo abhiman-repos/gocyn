@@ -19,13 +19,69 @@ export default function AdminLayout({
   const [authState, setAuthState] = useState<null | boolean>(null);
 
   useEffect(() => {
-    // sessionStorage is only available client-side, so this belongs in useEffect.
-    const isAdmin = sessionStorage.getItem("isAdmin") === "true";
-    setAuthState(isAdmin);
-
-    if (!isAdmin && pathname !== "/admin/login") {
-      router.replace("/admin/login");
+    if (pathname === "/admin/login") {
+      setAuthState(false);
+      return;
     }
+    let cancelled = false;
+    const clearSession = () => {
+      localStorage.removeItem("adminToken");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("isAdmin");
+      sessionStorage.removeItem("isDefaultAdmin");
+    };
+    const checkSession = async () => {
+      const persistedAdminToken = localStorage.getItem("adminToken");
+      const legacyAdminToken = sessionStorage.getItem("isAdmin") === "true"
+        ? localStorage.getItem("token")
+        : null;
+      const token = persistedAdminToken || legacyAdminToken;
+      if (!token) {
+        sessionStorage.removeItem("isAdmin");
+        if (!cancelled) { setAuthState(false); router.replace("/admin/login"); }
+        return;
+      }
+      if (!persistedAdminToken && legacyAdminToken) {
+        localStorage.setItem("adminToken", legacyAdminToken);
+      }
+      // sessionStorage survives a refresh in the same tab. Keep the admin shell
+      // mounted while the server confirms the persisted localStorage token.
+      if (sessionStorage.getItem("isAdmin") === "true" && !cancelled) {
+        setAuthState(true);
+      }
+      try {
+        const response = await fetch(process.env.NEXT_PUBLIC_APP_URL + "/api/admin/session/", {
+          headers: { Authorization: "Bearer " + token }, cache: "no-store",
+        });
+        if (response.status === 401 || response.status === 403) {
+          clearSession();
+          if (!cancelled) { setAuthState(false); router.replace("/admin/login"); }
+          return;
+        }
+        if (!response.ok) {
+          // A backend outage or proxy error is not proof that this token expired.
+          if (!cancelled && sessionStorage.getItem("isAdmin") !== "true") setAuthState(true);
+          return;
+        }
+        const session = await response.json();
+        if (cancelled) return;
+        if (typeof session.token === "string" && session.token) localStorage.setItem("adminToken", session.token);
+        sessionStorage.setItem("isAdmin", "true");
+        sessionStorage.setItem("isDefaultAdmin", String(session.is_default_admin === true));
+        if (pathname.startsWith("/admin/accessControl") && session.is_default_admin !== true) {
+          router.replace("/admin");
+          return;
+        }
+        setAuthState(true);
+      } catch {
+        // Keep a previously authenticated UI session through transient network
+        // failures; API authorization remains enforced by the backend.
+        if (!cancelled) setAuthState(true);
+      }
+    };
+    void checkSession();
+    const interval = window.setInterval(checkSession, 60_000);
+    return () => { cancelled = true; window.clearInterval(interval); };
   }, [pathname, router]);
 
   // ── Login page ─────────────────────────────────────────────────────────────

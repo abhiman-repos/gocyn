@@ -1,0 +1,114 @@
+%%{init: {
+  "flowchart": {
+    "curve": "linear",
+    "nodeSpacing": 1,
+    "rankSpacing": 100,
+    "padding": 10,
+    "htmlLabels": true,
+    "useMaxWidth": true
+  },
+  "themeVariables": {
+    "fontSize": "28px",
+    "background": "transparent",
+    "clusterBkg": "transparent",
+    "clusterBorder": "transparent",
+    "edgeLabelBackground": "transparent"
+  }
+}}%%
+
+flowchart LR
+
+  subgraph ACTORS["EXTERNAL ENTITIES"]
+    direction TB
+    S["STUDENT"]
+    I["INSTRUCTOR"]
+    A["ADMIN"]
+  end
+
+  subgraph SYSTEM["GOCYN"]
+    direction TB
+    P1(["1.0<br/>Authentication"])
+    P2(["2.0<br/>Profile Mgmt"])
+    P3(["3.0<br/>Course & Internship Mgmt"])
+    P4(["4.0<br/>Enrollment Mgmt"])
+    P5(["5.0<br/>Learning & Progress"])
+    P6(["6.0<br/>Certificate Mgmt"])
+    P7(["7.0<br/>Admin & Monitoring"])
+    P8(["8.0<br/>Notification Mgmt"])
+  end
+
+  subgraph DATABASE["DATA STORES"]
+    direction TB
+    D1[("D1<br/>User DB")]
+    D2[("D2<br/>Profile DB")]
+    D3[("D3<br/>Course DB")]
+    D4[("D4<br/>Enrollment DB")]
+    D5[("D5<br/>Progress DB")]
+    D6[("D6<br/>Certificate DB")]
+    D7[("D7<br/>Notification DB")]
+  end
+
+  S -->|"Register/Login"| P1
+  I -->|"Register/Login"| P1
+  A -->|"Admin Login"| P1
+  P1 <--> D1
+  P1 -->|"Auth Result"| S
+  P1 -->|"Auth Result"| I
+  P1 -->|"Auth Result"| A
+
+  S -->|"Profile Details"| P2
+  I -->|"Professional Details"| P2
+  P2 <--> D2
+  P2 -->|"Updated Profile"| S
+  P2 -->|"Updated Profile"| I
+
+  S -->|"Browse/Search"| P3
+  I -->|"Create Content"| P3
+  A -->|"Approval"| P3
+  P3 <--> D3
+  P3 -->|"Content"| S
+
+  S -->|"Enroll Request"| P4
+  P4 <--> D3
+  P4 <--> D4
+  P4 -->|"Status"| S
+  P4 -->|"Student List"| I
+
+  S -->|"Activity"| P5
+  I -->|"Evaluation"| P5
+  P5 <--> D4
+  P5 <--> D5
+  P5 -->|"Progress"| S
+  P5 -->|"Reports"| I
+
+  P5 -->|"Eligibility"| P6
+  I -->|"Verification"| P6
+  A -->|"Cert Mgmt"| P6
+  S -->|"Verify Request"| P6
+  P6 <--> D4
+  P6 <--> D6
+  P6 -->|"Certificate"| S
+  P6 -->|"Details"| I
+
+  A -->|"Platform Mgmt"| P7
+  P7 <--> D1
+  P7 <--> D2
+  P7 <--> D3
+  P7 <--> D4
+  P7 <--> D6
+  P7 -->|"Analytics"| A
+  P7 -->|"Decisions"| P3
+
+  P1 & P2 & P3 & P4 & P5 & P6 --> P8
+  P8 <--> D7
+  P8 -->|"Notifications"| S
+  P8 -->|"Notifications"| I
+  P8 -->|"Alerts"| A
+
+  classDef actor fill:#e8f0fe,stroke:#356ac3,color:#172b4d,stroke-width:2px;
+  classDef process fill:#e8f5e9,stroke:#32834b,color:#173b24,stroke-width:2px;
+  classDef database fill:#fff2d9,stroke:#bd8428,color:#50350c,stroke-width:2px;
+
+  class S,I,A actor;
+  class P1,P2,P3,P4,P5,P6,P7,P8 process;
+  class D1,D2,D3,D4,D5,D6,D7 database;

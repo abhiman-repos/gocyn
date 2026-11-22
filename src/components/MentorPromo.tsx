@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Ad } from "../types";
+import { Ad } from "../../app/types/types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const API                = process.env.NEXT_PUBLIC_APP_URL;
@@ -67,7 +67,7 @@ function resolveButtonStyle(ad: Ad): React.CSSProperties {
 
 // ─── Allowed paths ─────────────────────────────────────────────────────────────
 const ALLOWED_PATHS   = ["/", "/home", "/courses", "/explore"];
-const BLOCKED_SEGMENTS = ["/partner", "/admin", "/dashboard"];
+const BLOCKED_SEGMENTS = ["/instructors", "/admin", "/dashboard"];
 
 function useIsAllowedPath(): boolean {
   const pathname = usePathname();
@@ -136,6 +136,7 @@ export default function AdModal() {
   // Track the ad that is currently being timed so the countdown
   // effect restarts cleanly when the ad changes.
   const currentAdIdRef = useRef<string | null>(null);
+  const trackedViewIds = useRef(new Set<string>());
 
   // ── Derived: ads not yet dismissed ─────────────────────────────────────────
   const pendingAds = ads.filter(ad => !dismissedIds.has(ad._id ?? ad._id));
@@ -166,13 +167,20 @@ const advanceOrClose = useCallback((adId: string) => {
   // ── Fetch ads ───────────────────────────────────────────────────────────────
   const fetchAds = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/auth/ads/active/`);
+      const res = await fetch(`${API}/api/admin/ads/active/`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: Ad[] = await res.json();
       setAds(data);
     } catch (err) {
       console.error("[AdModal] fetch error:", err);
     }
+  }, []);
+
+  const trackAdEvent = useCallback((adId: string, kind: "view" | "click") => {
+    void fetch(`${API}/api/admin/ads/${adId}/events/`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind }), keepalive: true,
+    }).catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -223,6 +231,15 @@ const advanceOrClose = useCallback((adId: string) => {
     return () => clearInterval(intervalId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, currentAd?._id ?? currentAd?._id]);
+
+  useEffect(() => {
+    if (!isOpen || !currentAd) return;
+    const id = currentAd._id;
+    if (!trackedViewIds.current.has(id)) {
+      trackedViewIds.current.add(id);
+      trackAdEvent(id, "view");
+    }
+  }, [isOpen, currentAd?._id, trackAdEvent]);
 
   // ── Body scroll lock ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -379,7 +396,7 @@ useEffect(() => {
             rel="noopener noreferrer"
             aria-label={currentAd.buttonText || "View advertisement"}
             style={{ display: "block", width: "100%", height: "100%", position: "relative" }}
-            onClick={e => { if (!currentAd.buttonLink) e.preventDefault(); }}
+            onClick={e => { if (!currentAd.buttonLink) e.preventDefault(); else trackAdEvent(adId, "click"); }}
           >
             <Image
               src={currentAd.image}
@@ -388,6 +405,7 @@ useEffect(() => {
               sizes="(max-width: 640px) 95vw, 800px"
               className="object-cover"
               priority
+              unoptimized
             />
             {/* Hover tint when image is clickable */}
             {currentAd.buttonLink && (
@@ -426,7 +444,7 @@ useEffect(() => {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={btnStyle}
-                onClick={e => { if (!currentAd.buttonLink) e.preventDefault(); }}
+                onClick={e => { if (!currentAd.buttonLink) e.preventDefault(); else trackAdEvent(adId, "click"); }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.05)";
                   (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 8px 32px rgba(255, 255, 255, 0)";

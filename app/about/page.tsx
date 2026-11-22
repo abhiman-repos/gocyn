@@ -210,13 +210,13 @@ export default function AboutClient() {
                 year: "2025",
                 icon: FiTrendingUp,
                 detail:
-                  "Crossed 500+ courses, 2000 active learners, and partnered with 100+ companies.",
+                  "Crossed 500+ courses, 2000 active learners, and instructorsed with 100+ companies.",
               },
               {
                 year: "Today",
                 icon: FiGlobe,
                 detail:
-                  "5000+ students placed, 200+ hiring partners, 50+ expert mentors. Just getting started.",
+                  "5000+ students placed, 200+ hiring instructors, 50+ expert mentors. Just getting started.",
               },
             ].map((item) => (
               <motion.div
@@ -367,7 +367,7 @@ export default function AboutClient() {
               },
               {
                 q: "Are the internships remote or on‑site?",
-                a: "All our internships are remote‑first, so you can work from anywhere. Some partner companies may offer on‑site opportunities after a successful remote stint.",
+                a: "All our internships are remote‑first, so you can work from anywhere. Some instructors companies may offer on‑site opportunities after a successful remote stint.",
               },
               {
                 q: "Will I get a certificate?",

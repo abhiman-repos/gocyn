@@ -38,12 +38,12 @@ export default function PartnerRequestsPage() {
     setError("");
 
     try {
-      const adminToken = localStorage.getItem("token");
+      const adminToken = localStorage.getItem("adminToken");
       if (!adminToken) throw new Error("Admin not logged in");
 
-      const url = statusFilter === "all" 
-        ? `${API}/api/partner/requests/` 
-        : `${API}/api/partner/requests/?status=${statusFilter}`;
+      const url = statusFilter === "all"
+        ? `${API}/api/instructors/requests/`
+        : `${API}/api/instructors/requests/?status=${statusFilter}`;
 
       const res = await fetch(url, {
         headers: { 
@@ -180,7 +180,7 @@ export default function PartnerRequestsPage() {
                     </td>
                     <td className="p-4 text-right">
                       <Link 
-                        href={`/admin/partners/${req._id}`}
+                        href={`/admin/instructors/${req._id}`}
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-400 text-white hover:bg-blue-700  text-sm font-medium transition-colors"
                       >
                         <Eye size={16} /> Review

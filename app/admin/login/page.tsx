@@ -9,21 +9,68 @@ import CircularText from "@/src/components/CircularText";
 
 const API = process.env.NEXT_PUBLIC_APP_URL;
 
+async function readApiResponse(response: Response): Promise<Record<string, any>> {
+  const body = await response.text();
+  if (!body) return {};
+
+  try {
+    const data: unknown = JSON.parse(body);
+    return data && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, any>)
+      : { message: data };
+  } catch {
+    return { message: `Server returned an unreadable response (HTTP ${response.status}).` };
+  }
+}
+
+function getApiError(data: Record<string, any>, fallback: string): string {
+  const value = data.error ?? data.detail ?? data.message ?? data.non_field_errors;
+  if (typeof value === "string" && value.trim()) return value;
+  if (Array.isArray(value)) {
+    const messages = value.map((item) => getApiError({ message: item }, "")).filter(Boolean);
+    if (messages.length) return messages.join(" ");
+  }
+  if (value && typeof value === "object") {
+    const messages = Object.entries(value).map(([field, message]) => {
+      const text = getApiError({ message }, "");
+      return text ? `${field}: ${text}` : "";
+    }).filter(Boolean);
+    if (messages.length) return messages.join(" ");
+  }
+  return fallback;
+}
+
 export default function AdminLogin() {
   const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [challengeId, setChallengeId] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
-  // Check for existing admin session
+  // Reuse an existing session only after the backend confirms it is valid.
   useEffect(() => {
-    const isAdmin = sessionStorage.getItem("isAdmin");
-    if (isAdmin === "true") {
-      router.replace("/admin");
-    }
+    const persistedToken = localStorage.getItem("adminToken");
+    const legacyToken = sessionStorage.getItem("isAdmin") === "true"
+      ? localStorage.getItem("token")
+      : null;
+    const token = persistedToken || legacyToken;
+    if (!token) return;
+    if (!persistedToken && legacyToken) localStorage.setItem("adminToken", legacyToken);
+    fetch(API + "/api/admin/session/", {
+      headers: { Authorization: "Bearer " + token }, cache: "no-store",
+    }).then(async (res) => {
+      if (res.ok) {
+        const session = await res.json().catch(() => ({}));
+        if (typeof session.token === "string" && session.token) localStorage.setItem("adminToken", session.token);
+        router.replace("/admin");
+      } else if (res.status === 401 || res.status === 403) localStorage.removeItem("adminToken");
+    }).catch(() => {
+      // Preserve the persisted token during temporary network/API failures.
+    });
   }, [router]);
 
   // ==================== SEND OTP ====================
@@ -35,22 +82,30 @@ export default function AdminLogin() {
       setError("Please enter a valid email address");
       return;
     }
+    if (!password) {
+      setError("Please enter your password");
+      return;
+    }
 
     try {
       setLoading(true);
 
-      const res = await fetch(`${API}/auth/send-otp/`, {
+      const res = await fetch(`${API}/api/admin/send-otp/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await readApiResponse(res);
 
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to send OTP");
+        throw new Error(getApiError(data, `Failed to send OTP (HTTP ${res.status}).`));
+      }
+      if (typeof data.challenge_id !== "string" || !data.challenge_id) {
+        throw new Error("The server did not return a verification challenge. Please try again.");
       }
 
+      setChallengeId(data.challenge_id);
       toast.success("OTP sent successfully to your email");
       setStep("otp");
     } catch (err: any) {
@@ -75,24 +130,24 @@ export default function AdminLogin() {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API}/auth/verify-otp/`, {
+      const res = await fetch(`${API}/api/admin/verify-otp/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: email.trim().toLowerCase(),
+          challenge_id: challengeId,
           otp: otp.trim(),
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await readApiResponse(res);
 
       if (!res.ok) {
-        throw new Error(data?.error || "Invalid OTP");
+        throw new Error(getApiError(data, `OTP verification failed (HTTP ${res.status}).`));
       }
 
       // Success
       sessionStorage.setItem("isAdmin", "true");
-      if (data.token) localStorage.setItem("token", data.token);
+      if (data.token) localStorage.setItem("adminToken", data.token);
 
       toast.success("Welcome back, Admin");
       router.replace("/admin");
@@ -171,11 +226,28 @@ export default function AdminLogin() {
                     required
                   />
                 </div>
+                <label className="block text-sm font-medium text-gray-700 mt-5 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-gray-400">
+                    <FiLock size={18} />
+                  </div>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    className="w-full pl-10 sm:pl-12 pr-4 sm:pr-5 py-3 sm:py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm sm:text-base transition-all"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
 
               <button
                 type="submit"
-                disabled={loading || !email.trim()}
+                disabled={loading || !email.trim() || !password}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 sm:py-4 rounded-2xl transition-all duration-300 text-base sm:text-lg shadow-lg shadow-blue-500/30 disabled:shadow-none flex items-center justify-center gap-2"
               >
                 {loading ? (
@@ -227,6 +299,7 @@ export default function AdminLogin() {
                 onClick={() => {
                   setStep("email");
                   setOtp("");
+                  setChallengeId("");
                   setError("");
                 }}
                 className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-blue-700 font-medium py-2 sm:py-3 transition-colors text-sm sm:text-base"

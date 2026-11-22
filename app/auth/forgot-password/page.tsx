@@ -1,316 +1,245 @@
 "use client";
 
-import React, { useState, FormEvent, useRef, useEffect } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
-  Mail,
   ArrowLeft,
-  ChevronRight,
-  AlertCircle,
+  ArrowRight,
   CheckCircle2,
-  Loader2,
+  LoaderCircle,
+  Mail,
+  ShieldCheck,
 } from "lucide-react";
 
+const API_URL = (
+  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000"
+).replace(/\/$/, "");
+
+function getErrorMessage(data: any, status: number): string {
+  const detail =
+    data?.detail ?? data?.email?.[0] ?? data?.non_field_errors?.[0];
+
+  if (Array.isArray(detail)) return detail.filter(Boolean).join(" ");
+  if (typeof detail === "string" && detail.trim()) return detail;
+
+  if (status === 400) return "Please check the email address and try again.";
+  if (status === 404) return "No account was found with this email address.";
+  if (status === 429)
+    return "Too many attempts. Please wait a little before trying again.";
+  if (status >= 500)
+    return "We couldn't send the reset email right now. Please try again later.";
+  return "Something went wrong. Please try again.";
+}
+
 export default function ForgotPassword() {
-  const [step, setStep] = useState<"email" | "otp" | "success">("email");
-  
-  // Step 1: Email
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
+  const [sentTo, setSentTo] = useState("");
 
-  // Step 2: OTP
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  const router = useRouter();
-
-  const isValidEmail = (email: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  // Handle Email Submit → Send OTP (mock)
-  const handleEmailSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError("");
+    setSent(false);
 
-    if (!email.trim()) {
-      setError("Email address is required");
-      setLoading(false);
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      setError("Enter your email address.");
       return;
     }
-    if (!isValidEmail(email)) {
-      setError("Please enter a valid email address");
-      setLoading(false);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setError("Enter a valid email address, such as name@example.com.");
       return;
     }
 
-    // Mock API call
-    setTimeout(() => {
-      setLoading(false);
-      setStep("otp");
-      setOtp(Array(6).fill("")); // reset OTP
-    }, 900);
-  };
-
-  // Handle OTP change
-  const handleOtpChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return; // only numbers
-
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(0, 1); // only one digit
-    setOtp(newOtp);
-
-    // Auto focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  // Handle backspace
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  // Submit OTP
-  const handleOtpSubmit = async (e: FormEvent) => {
-    e.preventDefault();
     setLoading(true);
-    setError("");
+    try {
+      const response = await fetch(`${API_URL}/api/auth/forgot-password/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
 
-    const enteredOtp = otp.join("");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(getErrorMessage(data, response.status));
+      }
 
-    if (enteredOtp.length !== 6) {
-      setError("Please enter full 6-digit OTP");
+      setSentTo(normalizedEmail);
+      setSent(true);
+    } catch (err) {
+      if (err instanceof TypeError) {
+        setError(
+          "We couldn't connect to Gocyn. Check your connection and try again.",
+        );
+      } else {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to send the reset email. Please try again.",
+        );
+      }
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Mock correct OTP = 123456
-    if (enteredOtp === "123456") {
-      setTimeout(() => {
-        setLoading(false);
-        setStep("success");
-      }, 800);
-    } else {
-      setError("Invalid OTP. Please try again.");
-      setLoading(false);
-      setOtp(Array(6).fill(""));
-      inputRefs.current[0]?.focus();
-    }
-  };
-
-  // Auto redirect after success
-  useEffect(() => {
-    if (step === "success") {
-      const timer = setTimeout(() => {
-        router.push("/auth/reset-password");
-      }, 1800);
-      return () => clearTimeout(timer);
-    }
-  }, [step, router]);
-
-  // Success screen (before auto redirect)
-  if (step === "success") {
-    return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-slate-950 transition-colors">
-        <div className="absolute inset-0 bg-[radial-gradient(#3b82f630_1px,transparent_1px)] bg-[length:40px_40px] opacity-30 pointer-events-none dark:opacity-10" />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl shadow-slate-200/70 dark:shadow-black/40 border border-slate-100 dark:border-zinc-700 p-12 text-center"
-        >
-          <div className="w-20 h-20 mx-auto bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center">
-            <CheckCircle2 size={48} />
-          </div>
-          <h2 className="mt-8 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
-            OTP Verified!
-          </h2>
-          <p className="mt-3 text-slate-500 dark:text-slate-400">
-            Your email has been successfully verified.
-          </p>
-          <p className="mt-2 text-sm text-slate-400 dark:text-slate-500">
-            Redirecting to reset password page...
-          </p>
-
-          <div className="mt-8 flex justify-center">
-            <Loader2 className="animate-spin h-5 w-5 text-blue-600" />
-          </div>
-        </motion.div>
-      </div>
-    );
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-slate-950 transition-colors">
-      <div className="absolute inset-0 bg-[radial-gradient(#3b82f630_1px,transparent_1px)] bg-[length:40px_40px] opacity-30 pointer-events-none dark:opacity-10" />
+    <main className="relative flex min-h-[calc(100vh-64px)] items-center justify-center overflow-hidden bg-[#f8f9fc] px-5 py-12 text-slate-950 dark:bg-[#090b10] dark:text-white sm:px-8">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-violet-300/20 blur-3xl dark:bg-violet-600/10" />
+        <div className="absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-blue-300/20 blur-3xl dark:bg-blue-600/10" />
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="max-w-md w-full bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl shadow-slate-200/70 dark:shadow-black/40 border border-slate-100 dark:border-zinc-700 p-8 md:p-12 backdrop-blur-xl"
-      >
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-3xl font-bold shadow-inner">
-            N
-          </div>
-          {step === "email" ? (
+      <div className="relative w-full max-w-[440px]">
+        <Link
+          href="/"
+          className="mb-9 inline-flex items-center gap-2 text-lg font-bold tracking-tight"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
+            g.
+          </span>
+          <span>
+            gocyn<span className="text-violet-600">.</span>
+          </span>
+        </Link>
+
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="rounded-3xl bg-white p-7 shadow-[0_20px_70px_-32px_rgba(15,23,42,0.28)] ring-1 ring-slate-200/80 dark:bg-[#11141b] dark:ring-white/10 sm:p-9"
+        >
+          {!sent ? (
             <>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                Forgot password?
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-700 dark:bg-violet-400/15 dark:text-violet-300">
+                <Mail size={22} />
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Forgot your password?
               </h1>
-              <p className="mt-2 text-slate-500 dark:text-slate-400">
-                We&apos;ll send you a 6-digit OTP
+              <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                Enter the email address associated with your Gocyn account. If
+                it matches an account, we’ll send you a secure password-reset
+                link.
               </p>
+
+              <form
+                onSubmit={handleSubmit}
+                className="mt-8 space-y-5"
+                noValidate
+              >
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Email address
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    autoFocus
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      if (error) setError("");
+                    }}
+                    placeholder="you@example.com"
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={
+                      error ? "forgot-password-error" : undefined
+                    }
+                    className={`h-12 w-full rounded-xl bg-white px-4 text-sm outline-none ring-1 transition placeholder:text-slate-400 focus:ring-2 dark:bg-white/[0.04] dark:text-white ${
+                      error
+                        ? "ring-rose-400 focus:ring-rose-400"
+                        : "ring-slate-200 focus:ring-violet-500 dark:ring-white/10"
+                    }`}
+                  />
+                </div>
+
+                {error && (
+                  <div
+                    id="forgot-password-error"
+                    role="alert"
+                    className="rounded-xl bg-rose-50 px-4 py-3 text-sm leading-5 text-rose-700 dark:bg-rose-400/10 dark:text-rose-300"
+                  >
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-violet-200"
+                >
+                  {loading ? (
+                    <LoaderCircle size={18} className="animate-spin" />
+                  ) : null}
+                  {loading ? "Sending reset link…" : "Send reset link"}
+                  {!loading && <ArrowRight size={17} />}
+                </button>
+              </form>
             </>
           ) : (
-            <>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                Enter OTP
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">
+                <CheckCircle2 size={23} />
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Check your inbox
               </h1>
-              <p className="mt-2 text-slate-500 dark:text-slate-400">
-                We sent a code to <span className="font-medium">{email}</span>
+              <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                Your request was accepted for{" "}
+                <span className="font-medium text-slate-900 dark:text-white">
+                  {sentTo}
+                </span>
+                .
               </p>
-            </>
-          )}
-        </div>
-
-        {/* Error */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 flex items-center gap-3 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-100 dark:border-red-900 p-4 text-sm text-red-700 dark:text-red-400"
-          >
-            <AlertCircle size={20} className="shrink-0" />
-            <span className="font-medium">{error}</span>
-          </motion.div>
-        )}
-
-        {/* ==================== EMAIL STEP ==================== */}
-        {step === "email" && (
-          <form onSubmit={handleEmailSubmit} className="space-y-6" noValidate>
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Email address
-              </label>
-              <div className="relative">
-                <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={20} />
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-12 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all outline-none"
-                  placeholder="you@company.com"
-                />
+              <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm leading-6 text-emerald-900 dark:bg-emerald-400/10 dark:text-emerald-200">
+                <div className="flex items-start gap-2">
+                  <ShieldCheck size={18} className="mt-0.5 shrink-0" />
+                  <p>
+                    If this email is registered, a password-reset link will
+                    arrive shortly. Check your spam folder too. The link will
+                    let you set a new password—no OTP is required.
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin h-5 w-5 text-white" />
-                  <span>Sending OTP...</span>
-                </>
-              ) : (
-                <>
-                  Send OTP
-                  <ChevronRight size={22} className="transition-transform group-hover:translate-x-0.5" />
-                </>
-              )}
-            </motion.button>
-          </form>
-        )}
-
-        {/* ==================== OTP STEP ==================== */}
-        {step === "otp" && (
-          <form onSubmit={handleOtpSubmit} className="space-y-6" noValidate>
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 text-center">
-                Enter 6-digit OTP
-              </label>
-              <div className="flex justify-center gap-3">
-                {otp.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => {
-                      inputRefs.current[index] = el;
-                    }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-10 h-12 text-center text-2xl font-semibold border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none transition-all"
-                  />
-                ))}
-              </div>
-            </div>
-
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin h-5 w-5 text-white" />
-                  <span>Verifying OTP...</span>
-                </>
-              ) : (
-                <>
-                  Verify OTP
-                  <ChevronRight size={22} className="transition-transform group-hover:translate-x-0.5" />
-                </>
-              )}
-            </motion.button>
-
-            {/* Resend OTP */}
-            <div className="text-center">
               <button
                 type="button"
                 onClick={() => {
-                  setOtp(Array(6).fill(""));
-                  inputRefs.current[0]?.focus();
-                  // Mock resend
-                  alert("New OTP sent! (Demo: 123456)");
+                  setSent(false);
+                  setError("");
                 }}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                className="mt-6 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/5"
               >
-                Resend OTP
+                Try another email
               </button>
-            </div>
-          </form>
-        )}
+            </motion.div>
+          )}
 
-        {/* Back to Login */}
-        <div className="mt-10 text-center">
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-          >
-            <ArrowLeft size={18} />
-            Back to sign in
-          </Link>
-        </div>
-      </motion.div>
-    </div>
+          <div className="mt-7 border-t border-slate-100 pt-5 dark:border-white/10">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
+            >
+              <ArrowLeft size={16} /> Back to sign in
+            </Link>
+          </div>
+        </motion.section>
+
+        <p className="mt-5 text-center text-xs text-slate-400 dark:text-slate-600">
+          For your security, never share a password-reset link with anyone.
+        </p>
+      </div>
+    </main>
   );
 }

@@ -123,7 +123,7 @@ const PrivacyPolicy: React.FC = () => {
           Third‑party vendors, including Google, use cookies to serve ads based on your prior visits to this website or other websites.
         </li>
         <li>
-          Google’s use of advertising cookies enables it and its partners to serve ads to you based on your visit to our sites and/or other sites on the Internet.
+          Google’s use of advertising cookies enables it and its instructors to serve ads to you based on your visit to our sites and/or other sites on the Internet.
         </li>
         <li>
           You may opt out of personalized advertising by visiting <a href="https://myadcenter.google.com/" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Google Ads Settings</a>. Alternatively, you can opt out of many third‑party vendors’ use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">www.aboutads.info</a>.
@@ -155,7 +155,7 @@ const PrivacyPolicy: React.FC = () => {
         <li><strong>Right to Withdraw Consent:</strong> Withdraw previously given consent at any time, without affecting the lawfulness of processing before withdrawal.</li>
       </ul>
       <p className="mb-4">
-        If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information is collected, disclosed, or “sold” (as defined by CCPA). While we do not sell personal information for monetary consideration, the sharing of data with advertising partners to serve personalized ads may be considered a “sale” under CCPA. You may opt out of such sharing by adjusting your cookie preferences or visiting the opt‑out pages listed in Section 7. To exercise any of these rights, please contact us using the details below. We will respond within the timeframe required by applicable law.
+        If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information is collected, disclosed, or “sold” (as defined by CCPA). While we do not sell personal information for monetary consideration, the sharing of data with advertising instructors to serve personalized ads may be considered a “sale” under CCPA. You may opt out of such sharing by adjusting your cookie preferences or visiting the opt‑out pages listed in Section 7. To exercise any of these rights, please contact us using the details below. We will respond within the timeframe required by applicable law.
       </p>
 
       <h2 className="text-2xl font-semibold mt-6 mb-3 text-gray-900">10. Children’s Privacy</h2>
@@ -165,7 +165,7 @@ const PrivacyPolicy: React.FC = () => {
 
       <h2 className="text-2xl font-semibold mt-6 mb-3 text-gray-900">11. Third‑Party Links</h2>
       <p className="mb-4">
-        Our website may contain links to external sites (e.g., payment gateways, mentors’ profiles, or partner offers). We are not responsible for the privacy practices or content of these third‑party sites. We encourage you to review the privacy policies of any external sites you visit.
+        Our website may contain links to external sites (e.g., payment gateways, mentors’ profiles, or instructors offers). We are not responsible for the privacy practices or content of these third‑party sites. We encourage you to review the privacy policies of any external sites you visit.
       </p>
 
       <h2 className="text-2xl font-semibold mt-6 mb-3 text-gray-900">12. International Data Transfers</h2>

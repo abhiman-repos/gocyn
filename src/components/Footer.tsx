@@ -37,6 +37,8 @@ export default function Footer() {
     "/courses",
     "/profile/setting",
     "/internships",
+    "/onboarding"
+    
   ];
 
   const shouldHide =
@@ -44,7 +46,7 @@ export default function Footer() {
     pathname.startsWith("/course/") ||
     pathname.startsWith("/mentors/") ||
     pathname.startsWith("/admin/") ||
-    pathname.startsWith("/partner/") ||
+    pathname.startsWith("/instructors/") ||
     pathname === "/mentors";
 
   if (shouldHide) return null;

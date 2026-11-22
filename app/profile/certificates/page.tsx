@@ -24,14 +24,19 @@ export default function CertificatesPage() {
     const fetchCertificates = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`${API}/api/users/my-certificates/`, {
+        const res = await fetch(`${API}/api/courses/my-certificates/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
-        console.log(data)
         if (res.ok) {
-          setCertificates(data.certificates || []);
+          setCertificates((data.certificates || []).map((cert: any) => ({
+            id: cert.id || cert.certificateId,
+            title: cert.title || cert.course,
+            course: cert.course || cert.title,
+            issuedDate: new Date(cert.issuedDate || cert.issued_at).toLocaleDateString("en-IN"),
+            certificateId: cert.certificateId || cert.id,
+          })));
         }
       } catch (err) {
         console.error("CERT ERROR:", err);
@@ -50,7 +55,7 @@ export default function CertificatesPage() {
             key={cert.id}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden"
+            className="bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden"
           >
             {/* Certificate Preview - Height kam kiya */}
             <div className="h-40 bg-gradient-to-br from-blue-600 to-indigo-600 p-5 flex flex-col justify-between text-white relative">
@@ -79,12 +84,9 @@ export default function CertificatesPage() {
 
               {/* Buttons - tight */}
               <div className="flex gap-2 mt-6">
-                <button
-                  onClick={() => window.open(`/profile/certicate/${cert.certificateId}`)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-2xl font-semibold hover:bg-blue-700 text-sm transition-all"
-                >
+                <Link href={`/profile/certificate/${cert.certificateId}`} className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 font-semibold hover:bg-blue-700 text-sm transition-all">
                   <FaEye /> View
-                </button>
+                </Link>
               </div>
             </div>
           </motion.div>

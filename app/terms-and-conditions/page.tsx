@@ -589,7 +589,7 @@ export default function TermsAndConditions() {
                         <li><strong>"Platform"</strong> — The Gocyn website (gocyn.com), mobile apps, APIs, and all associated digital services.</li>
                         <li><strong>"Content"</strong> — All course videos, materials, assignments, quizzes, certificates, text, graphics, and code available on the Platform.</li>
                         <li><strong>"Course"</strong> — Any online educational program offered on Gocyn, including pre-recorded, live, or hybrid formats.</li>
-                        <li><strong>"Internship Listing"</strong> — Any internship or work opportunity posted by an employer partner on the Platform.</li>
+                        <li><strong>"Internship Listing"</strong> — Any internship or work opportunity posted by an employer instructors on the Platform.</li>
                         <li><strong>"Mentorship"</strong> — One-on-one or group sessions facilitated between a registered Mentor and a Learner via the Platform.</li>
                         <li><strong>"Subscription"</strong> — A recurring paid plan granting access to premium Platform features.</li>
                         <li><strong>"User Data"</strong> — Any personal information, usage data, or content submitted by you to the Platform.</li>
@@ -651,7 +651,7 @@ export default function TermsAndConditions() {
                       <p>Gocyn provides the following core services, subject to these Terms:</p>
                       <ul>
                         <li><strong>Online Courses:</strong> Access to pre-recorded and live learning programs across technology, business, design, and other disciplines.</li>
-                        <li><strong>Internship Opportunities:</strong> A curated marketplace connecting learners with verified employer partners for paid and unpaid internships across India.</li>
+                        <li><strong>Internship Opportunities:</strong> A curated marketplace connecting learners with verified employer instructors for paid and unpaid internships across India.</li>
                         <li><strong>Mentorship Programs:</strong> Facilitated sessions between industry experts and learners for career guidance, skill development, and professional growth.</li>
                         <li><strong>Certifications:</strong> Completion certificates issued upon successfully finishing qualifying courses or programs.</li>
                         <li><strong>Community Features:</strong> Discussion forums, peer learning groups, and networking tools.</li>
@@ -792,7 +792,7 @@ export default function TermsAndConditions() {
                       </p>
                       <ul>
                         <li>You have violated any provision of these Terms or any applicable law.</li>
-                        <li>Your conduct is harmful to Gocyn, its users, instructors, partners, or third parties.</li>
+                        <li>Your conduct is harmful to Gocyn, its users, instructors, instructors, or third parties.</li>
                         <li>Continuing your access poses legal or reputational risk to Gocyn.</li>
                         <li>Required by law enforcement or judicial order.</li>
                       </ul>
@@ -821,7 +821,7 @@ export default function TermsAndConditions() {
                         <li>Mentor advice constitutes professional legal, financial, or medical guidance.</li>
                       </ul>
                       <p>
-                        <strong>Limitation of Liability:</strong> To the fullest extent permitted by Indian law, Gocyn, its directors, employees, instructors, and partners shall not be liable for any indirect, incidental, special, consequential, punitive, or exemplary damages, including loss of profits, data, reputation, or goodwill, arising from your use of or inability to use the Platform.
+                        <strong>Limitation of Liability:</strong> To the fullest extent permitted by Indian law, Gocyn, its directors, employees, instructors, and instructors shall not be liable for any indirect, incidental, special, consequential, punitive, or exemplary damages, including loss of profits, data, reputation, or goodwill, arising from your use of or inability to use the Platform.
                       </p>
                       <p>
                         Gocyn's total aggregate liability to you for any claims under or in connection with these Terms shall not exceed the <strong>total amount paid by you to Gocyn in the twelve (12) months preceding the claim</strong>.

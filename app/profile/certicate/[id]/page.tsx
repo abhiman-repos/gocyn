@@ -25,10 +25,17 @@ export default function CertificatePage() {
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
 
+  const formatDate = (value?: string | null) => value
+    ? new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+    : "—";
+
   useEffect(() => {
     const fetchCertificate = async () => {
       try {
-        const res = await fetch(`${API}/upload/verify/${id}/`);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API}/api/courses/certificates/${id}/`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         const data = await res.json();
 
         if (!res.ok || !data.valid) {
@@ -51,6 +58,10 @@ export default function CertificatePage() {
   const triggerConfetti = () => {
     confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
   };
+
+  const qrImageUrl = certificateData?.qr_code || "";
+  const completedOn = certificateData?.completed_at;
+  const certificateDate = completedOn || certificateData?.issued_at;
 
   // High Quality PDF Download
   const handleDownloadPDF = async () => {
@@ -145,131 +156,62 @@ export default function CertificatePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="shadow-2xl"
+          className="overflow-x-auto shadow-2xl"
         >
           {/* Certificate Container */}
           <div
             ref={certificateRef}
-            className="bg-white border-[12px] border-[#1e3a8a] rounded-none aspect-[297/210] w-full max-w-[1000px] mx-auto relative overflow-hidden"
+            className="relative mx-auto aspect-[297/210] w-full min-w-[720px] max-w-[1200px] overflow-hidden bg-white font-sans text-[#0b0b0b]"
             style={{ boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.4)" }}
           >
-            {/* Header */}
-            <div className="flex justify-between items-start px-16 pt-12">
-              <div className="flex items-center gap-4">
-                {/* Dynamic Logo / Organization */}
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-800">
-                    {certificateData.organization_name || "Gocyn"}
-                  </h1>
-                  <p className="text-sm text-gray-600">
-                    {certificateData.organization_tagline ||
-                      "Empowering Innovation, Building Future"}
-                  </p>
-                </div>
-              </div>
+            <div className="absolute inset-[1.8%] border-[7px] border-[#2a1fb5]" />
 
-              <div className="text-right">
-                <h2 className="text-5xl font-bold tracking-wider text-[#1e3a8a]">
-                  CERTIFICATE
-                </h2>
-                <p className="text-xl text-gray-700 -mt-2">OF INTERNSHIP</p>
+            <img src="/logo.png" alt="Gocyn" className="absolute left-[5.2%] top-[6.4%] h-[12%] w-[11%] object-contain" />
+            <div className="absolute right-[5.2%] top-[6.5%] max-w-[45%] text-right">
+              <h1 className="text-[clamp(12px,2.2vw,28px)] font-semibold tracking-tight text-[#111]">{certificateData.organization_name || "Gocyn"}</h1>
+              <p className="mt-1 text-[clamp(7px,0.85vw,12px)] text-[#333]">{certificateData.organization_tagline || "Empowering Learning, Building Future."}</p>
+            </div>
+
+            <header className="absolute left-[5%] right-[5%] top-[17%] text-center">
+              <h2 className="text-[clamp(28px,5.5vw,68px)] font-extrabold leading-none tracking-[0.02em] text-[#0b0b0b]">CERTIFICATE</h2>
+              <p className="mt-[1.2%] text-[clamp(11px,1.6vw,20px)] font-normal tracking-[0.34em] text-[#111]">OF {certificateData.certificate_type === "course" ? "COMPLETION" : "INTERNSHIP"}</p>
+              <div className="mx-auto mt-[1.1%] h-[3px] w-[9%] bg-[#2a1fb5]" />
+            </header>
+
+            <main className="absolute left-[8%] right-[8%] top-[38.5%] text-center">
+              <p className="text-[clamp(10px,1.35vw,17px)]">This is to certify that</p>
+              <h3 className="mx-auto mt-[1.3%] max-w-full truncate border-b border-[#666] px-[3%] pb-[0.8%] text-[clamp(18px,3.3vw,42px)] font-bold uppercase tracking-[0.02em] text-[#2a4aa8]">{certificateData.user_name}</h3>
+              <p className="mt-[1.5%] text-[clamp(9px,1.2vw,15px)] text-[#333]">{certificateData.certificate_type === "course" ? "has successfully completed the course" : "has successfully completed an internship as"}</p>
+              <div className="mx-auto mt-[1.4%] inline-flex max-w-[82%] items-center justify-center gap-[1.4%] border-[2px] border-[#2a4aa8] px-[3.5%] py-[1%] text-[#2a4aa8]">
+                <FaCalendarAlt className="shrink-0 text-[clamp(11px,1.7vw,21px)]" />
+                <span className="line-clamp-2 text-[clamp(12px,2vw,25px)] font-semibold leading-tight text-[#111]">{certificateData.course_title || certificateData.internship_title || "Course completion"}</span>
+              </div>
+              <p className="mx-auto mt-[1.8%] max-w-[72%] text-[clamp(8px,1vw,13px)] leading-relaxed text-[#333]">
+                {certificateData.certificate_type === "course"
+                  ? certificateData.description || `For successfully completing all required lessons of ${certificateData.course_title || "this course"}, demonstrating dedication and a keen learning attitude.`
+                  : `During this period, ${certificateData.user_name?.split(" ")[0]} worked on various tasks including ${certificateData.description || "project development, problem solving, and demonstrating dedication and a keen learning attitude."}`}
+              </p>
+            </main>
+
+            <div className="absolute left-[35%] top-[76%] flex max-w-[44%] items-center gap-[1.4%]">
+              <FaCalendarAlt className="shrink-0 text-[clamp(17px,2.4vw,30px)] text-[#2a4aa8]" />
+              <div className="min-w-0">
+                <p className="text-[clamp(8px,1vw,13px)] uppercase tracking-wide text-[#2a4aa8]">{certificateData.start_date ? "Duration" : completedOn ? "Completed on" : "Certificate issued"}</p>
+                <p className="text-[clamp(9px,1.2vw,16px)] font-semibold text-[#111]">{certificateData.start_date ? `${formatDate(certificateData.start_date)} - ${formatDate(certificateData.end_date || certificateDate)}` : formatDate(certificateDate)}</p>
               </div>
             </div>
 
-            {/* Content */}
-            <div className="px-16 pt-8 text-center">
-              <p className="text-lg mb-4">This is to certify that</p>
-
-              <h3 className="text-4xl font-bold text-[#1e40af] mb-2 tracking-wide">
-                {certificateData.user_name}
-              </h3>
-
-              <p className="text-gray-600 mb-8">
-                has successfully completed an internship as
-              </p>
-
-              {/* Role Box */}
-              <div className="inline-block border-2 border-[#1e40af] rounded-full px-10 py-3 mb-10">
-                <p className="text-2xl font-semibold text-[#1e40af]">
-                  {certificateData.internship_title ||
-                    "Software Development Intern"}
-                </p>
-              </div>
-
-              <p className="max-w-2xl mx-auto text-gray-700 leading-relaxed mb-12 text-[15px]">
-                During this period, {certificateData.user_name?.split(" ")[0]}{" "}
-                worked on various tasks including
-                {certificateData.description ||
-                  "project development, problem solving, and demonstrating dedication and a keen learning attitude."}
-              </p>
-
-              {/* Duration */}
-              <div className="flex items-center justify-center gap-4 mb-16">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <FaCalendarAlt className="text-[#1e40af] text-xl" />
-                </div>
-
-                <div className="text-left">
-                  <p className="text-xs uppercase tracking-wider text-gray-500">
-                    Issued On
-                  </p>
-
-                  <p className="font-semibold text-lg text-gray-800">
-                    {certificateData.start_date
-                      ? `${new Date(
-                          certificateData.start_date,
-                        ).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })} - ${
-                          certificateData.end_date
-                            ? new Date(
-                                certificateData.end_date,
-                              ).toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })
-                            : "Present"
-                        }`
-                      : new Date(certificateData.issued_at).toLocaleDateString(
-                          "en-IN",
-                          {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          },
-                        )}
-                  </p>
-                </div>
+            <div className="absolute bottom-[8.5%] left-[6%] w-[28%] text-center">
+              <div className="border-t border-[#666] pt-[1.5%]">
+                <p className="text-[clamp(9px,1.15vw,15px)] font-semibold">Authorized Signatory</p>
+                <p className="text-[clamp(8px,1vw,13px)] text-[#333]">{certificateData.organization_name || "Gocyn"}</p>
               </div>
             </div>
 
-            {/* Footer Signature */}
-            <div className="absolute bottom-12 left-16 right-16 pt-6 flex justify-between items-end">
-              <div>
-                <p className="font-semibold text-lg">Authorized Signatory</p>
-                <p className="text-gray-600">
-                  {certificateData.organization_name || "Gocyn"}
-                </p>
-              </div>
-
-              <div className="text-right">
-                <p className="text-sm text-black-500">Verify at</p>
-                <a
-                  href={`https://www.gocyn.in/verify`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-mono text-sm text-blue-600 underline hover:text-blue-800"
-                >
-                  {`www.gocyn.in/verify`}
-                </a>
-                <p className="text-sm text-black-500">Certificate ID</p>
-                <p className="font-mono blue-600">
-                  {certificateData.certificate_id}
-                </p>
-              </div>
+            {qrImageUrl && <img crossOrigin="anonymous" src={qrImageUrl} alt="Scan to verify this certificate" className="absolute bottom-[18%] right-[5.5%] h-[10%] w-[10%] object-contain" />}
+            <div className="absolute bottom-[6.5%] right-[5.5%] max-w-[25%] text-right text-[clamp(7px,0.8vw,11px)] leading-snug">
+              <b className="block text-[clamp(8px,0.9vw,12px)]">Certificate ID</b><span className="mb-[1.5%] block break-all text-[#2a4aa8]">{certificateData.certificate_id}</span>
+              <b className="block text-[clamp(8px,0.9vw,12px)]">Verify at</b><span className="block text-[#2a4aa8]">www.gocyn.com/verify</span>
             </div>
           </div>
         </motion.div>
@@ -290,7 +232,9 @@ export default function CertificatePage() {
               triggerConfetti();
               window.open(
                 `https://www.linkedin.com/sharing/share-offsite/?text=${encodeURIComponent(
-                  `I completed my internship at ${certificateData.organization_name || "Gocyn"}! 🎉`,
+                  certificateData.certificate_type === "course"
+                    ? `I completed ${certificateData.course_title || "a course"} at ${certificateData.organization_name || "Gocyn"}! 🎉`
+                    : `I completed my internship at ${certificateData.organization_name || "Gocyn"}! 🎉`,
                 )}`,
               );
             }}

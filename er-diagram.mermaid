@@ -1,0 +1,141 @@
+
+erDiagram
+
+    USER {
+        int id PK
+        string email UK
+        string password
+        string first_name
+        string last_name
+        string role
+        boolean is_active
+        boolean is_verified
+        datetime created_at
+    }
+
+    USER_PROFILE {
+        int id PK
+        int user_id FK
+        string phone
+        string profile_image
+        string bio
+        string current_location
+        string education
+        string skills
+        string linkedin_url
+        string github_url
+        datetime updated_at
+    }
+
+    COURSE {
+        int id PK
+        int instructor_id FK
+        string title
+        string description
+        string category
+        string level
+        string thumbnail
+        decimal price
+        boolean is_published
+        datetime created_at
+    }
+
+    COURSE_MODULE {
+        int id PK
+        int course_id FK
+        string title
+        int sequence
+    }
+
+    LESSON {
+        int id PK
+        int module_id FK
+        string title
+        string video_url
+        int duration
+        int sequence
+    }
+
+    INTERNSHIP {
+        int id PK
+        int instructor_id FK
+        string title
+        string description
+        string domain
+        string duration
+        string eligibility
+        date start_date
+        date end_date
+        string status
+        datetime created_at
+    }
+
+    COURSE_ENROLLMENT {
+        int id PK
+        int student_id FK
+        int course_id FK
+        string status
+        float progress
+        datetime enrolled_at
+    }
+
+    INTERNSHIP_ENROLLMENT {
+        int id PK
+        int student_id FK
+        int internship_id FK
+        string status
+        datetime applied_at
+        datetime approved_at
+    }
+
+    LESSON_PROGRESS {
+        int id PK
+        int student_id FK
+        int lesson_id FK
+        boolean is_completed
+        datetime completed_at
+    }
+
+    CERTIFICATE {
+        int id PK
+        int student_id FK
+        int course_enrollment_id FK
+        int internship_enrollment_id FK
+        string certificate_number UK
+        string certificate_url
+        string verification_code UK
+        date issued_at
+        boolean is_valid
+    }
+
+    NOTIFICATION {
+        int id PK
+        int user_id FK
+        string title
+        string message
+        string notification_type
+        boolean is_read
+        datetime created_at
+    }
+
+    USER ||--o| USER_PROFILE : has
+    USER ||--o{ COURSE : creates
+    USER ||--o{ INTERNSHIP : creates
+
+    COURSE ||--o{ COURSE_MODULE : contains
+    COURSE_MODULE ||--o{ LESSON : contains
+
+    USER ||--o{ COURSE_ENROLLMENT : enrolls
+    COURSE ||--o{ COURSE_ENROLLMENT : receives
+
+    USER ||--o{ INTERNSHIP_ENROLLMENT : applies
+    INTERNSHIP ||--o{ INTERNSHIP_ENROLLMENT : receives
+
+    USER ||--o{ LESSON_PROGRESS : tracks
+    LESSON ||--o{ LESSON_PROGRESS : records
+
+    USER ||--o{ CERTIFICATE : receives
+    COURSE_ENROLLMENT o|--o| CERTIFICATE : generates
+    INTERNSHIP_ENROLLMENT o|--o| CERTIFICATE : generates
+
+    USER ||--o{ NOTIFICATION : receives
