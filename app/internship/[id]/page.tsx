@@ -23,7 +23,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
 import { createPortal } from "react-dom";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 export default function InternshipDetail() {
   const params = useParams();

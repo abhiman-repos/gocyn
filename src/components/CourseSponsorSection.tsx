@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL || "";
+const API = process.env.APP_URL || "";
 const newEventId = () => typeof crypto !== "undefined" && "randomUUID" in crypto
   ? crypto.randomUUID()
   : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {

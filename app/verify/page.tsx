@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaAward, FaCheckCircle, FaSearch, FaShieldAlt, FaTimesCircle } from "react-icons/fa";
 
-const API = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000").replace(/\/+$/, "");
+const API = (process.env.APP_URL || "http://localhost:8000").replace(/\/+$/, "");
 async function fetchCertificateRecord(certificateId: string): Promise<Certificate> {
   const encodedId = encodeURIComponent(certificateId.toLowerCase());
   const legacyId = encodeURIComponent(certificateId);

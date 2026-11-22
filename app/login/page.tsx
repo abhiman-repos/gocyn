@@ -17,7 +17,7 @@ import {
 import { useAuth } from "@/src/context/AuthContext";
 import GoogleAuthButton from "@/src/components/libs/google-auth";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 export default function Login() {
   const [email, setEmail] = useState("");

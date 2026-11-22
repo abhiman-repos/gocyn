@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Ad } from "../../app/types/types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const API                = process.env.NEXT_PUBLIC_APP_URL;
+const API                = process.env.APP_URL;
 const DEFAULT_AUTO_CLOSE = 8;       // seconds — fallback when admin sets 0
 const FETCH_INTERVAL     = 60_000;  // re-fetch active ads every 60 s
 const SESSION_KEY        = "ads_dismissed_ids"; // sessionStorage key

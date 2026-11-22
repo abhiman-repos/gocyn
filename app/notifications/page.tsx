@@ -25,7 +25,7 @@ const NotificationsPage: React.FC = () => {
       router.replace(instructorAudience ? "/instructors/login?next=%2Fnotifications%3Faudience%3Dinstructor" : "/login?next=%2Fnotifications");
       return;
     }
-    const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "");
+    const base = process.env.APP_URL?.replace(/\/+$/, "");
     const endpoint = instructorAudience ? "/api/instructors/me/" : "/api/auth/me/";
     fetch(`${base}${endpoint}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
       .then((response) => {

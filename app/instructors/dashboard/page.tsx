@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import AnalyticsChart from "@/src/components/pages/AnalyticsChart";
 
-const API = process.env.NEXT_PUBLIC_APP_URL || "";
+const API = process.env.APP_URL || "";
 const inr = (value: string | number) => "₹" + Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 async function readJson(response: Response) {

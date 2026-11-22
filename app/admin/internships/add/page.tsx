@@ -30,7 +30,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 export default function AddInternship({
   initialData,

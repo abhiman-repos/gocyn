@@ -29,7 +29,7 @@ export async function fetchInstructorMe(): Promise<InstructorMe> {
   if (!token) throw new AuthError();
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/instructors/me/`,
+    `${process.env.APP_URL}/api/instructors/me/`,
     { headers: { Authorization: `Bearer ${token}` } },
   );
 

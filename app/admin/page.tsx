@@ -9,7 +9,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 export default function Dashboard() {
   const [internships, setInternships] = useState<any[]>([]);

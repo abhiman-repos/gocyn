@@ -31,7 +31,7 @@ import CourseCard from "@/src/components/pages/CourseCard";
 import { RecommendedCoursesSection, TrendingCoursesSection } from "@/src/components/CourseSection";
 import CourseSponsorSection from "@/src/components/CourseSponsorSection";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 // Background Images
 

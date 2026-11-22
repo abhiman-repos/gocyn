@@ -15,7 +15,7 @@ import {
 } from "react-icons/md";
 import Link from "next/link";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 // --- Validation Schema ---
 const internshipSchema = z.object({

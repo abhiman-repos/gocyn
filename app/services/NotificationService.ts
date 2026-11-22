@@ -3,7 +3,7 @@ import { Notification } from '../types/types';
 
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  baseURL: process.env.APP_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -78,7 +78,7 @@ async function instructorPreferenceRequest(method: "GET" | "PATCH", preferences?
   if (typeof window === "undefined") throw new Error("Instructor preferences are only available in the browser.");
   const token = localStorage.getItem("mentorToken");
   if (!token) throw new Error("Your instructor session has expired. Please sign in again.");
-  const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "");
+  const base = process.env.APP_URL?.replace(/\/+$/, "");
   if (!base) throw new Error("The API URL is not configured.");
 
   const response = await fetch(`${base}/api/instructors/notifications/preferences/`, {

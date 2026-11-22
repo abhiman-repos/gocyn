@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, MapPin, Search, Briefcase, ChevronRight, Sparkles, IndianRupee } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 export default function InternshipPage() {
   const [internships, setInternships] = useState<any[]>([]);

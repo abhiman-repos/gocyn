@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Award, BookOpen, BriefcaseBusiness, Globe2, Loader2, Mail, Users } from "lucide-react";
 import CourseCard from "@/src/components/pages/CourseCard";
 
-const API = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "");
+const API = process.env.APP_URL?.replace(/\/+$/, "");
 
 type InstructorCourse = {
   _id?: string;

@@ -255,7 +255,7 @@ export function Sidebar() {
   const handleLogout = useCallback(() => {
     const token = localStorage.getItem("adminToken");
     if (token) {
-      void fetch(process.env.NEXT_PUBLIC_APP_URL + "/api/admin/logout/", {
+      void fetch(process.env.APP_URL + "/api/admin/logout/", {
         method: "POST", headers: { Authorization: "Bearer " + token },
       }).catch(() => undefined);
     }

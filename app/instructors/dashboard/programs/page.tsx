@@ -37,7 +37,7 @@ import { Plus, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CourseUploadStepper from "@/src/components/CourseUploadStepper";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 // --- Types ---
 interface Internship {
