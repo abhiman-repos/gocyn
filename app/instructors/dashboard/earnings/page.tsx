@@ -23,6 +23,7 @@ export default function EarningsPage() {
   const [beneficiary, setBeneficiary] = useState("");
   const [upi, setUpi] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const load = async () => {
     const token = localStorage.getItem("mentorToken");
@@ -41,14 +42,18 @@ export default function EarningsPage() {
   useEffect(() => { load().catch((err) => setError(err.message)).finally(() => setLoading(false)); }, []);
 
   const requestWithdrawal = async (event: FormEvent) => {
-    event.preventDefault(); setBusy(true); setError("");
+    event.preventDefault(); setBusy(true); setError(""); setNotice("");
     try {
       const response = await fetch(API + "/api/instructors/courses/earnings/", {
         method: "POST",
         headers: { Authorization: "Bearer " + localStorage.getItem("mentorToken"), "Content-Type": "application/json" },
         body: JSON.stringify({ amount, method: "upi", beneficiary_name: beneficiary, destination_details: { upi_id: upi } }),
       });
-      await readJson(response); setAmount(""); setBeneficiary(""); setUpi(""); setShowRequest(false); await load();
+      const result = await readJson(response);
+      setAmount(""); setBeneficiary(""); setUpi(""); setShowRequest(false);
+      setNotice(`Withdrawal request ${result.request?.request_id ? `#${result.request.request_id.slice(0, 8)} ` : ""}was sent to the admin for review.`);
+      try { await load(); }
+      catch { setError("Your request was submitted, but the dashboard could not refresh. Reload the page to see the latest balance and history."); }
     } catch (err: any) { setError(err.message || "Could not submit withdrawal request."); }
     finally { setBusy(false); }
   };
@@ -92,11 +97,12 @@ export default function EarningsPage() {
       <div aria-hidden="true" className="absolute -right-16 -top-24 h-72 w-72 border border-white/10" />
     </header>
     {error && <p role="alert" className="border border-red-300 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+    {notice && <p role="status" className="border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
     {showRequest && <form onSubmit={requestWithdrawal} className="grid gap-4 border border-indigo-100 bg-white p-5 shadow-sm sm:grid-cols-2 sm:p-6">
       <div className="sm:col-span-2"><p className="text-xs font-bold uppercase tracking-wider text-indigo-700">Payout request</p><h2 className="mt-1 text-lg font-semibold text-slate-900">Send funds to your UPI account</h2><p className="mt-1 text-sm text-slate-600">Minimum request ₹1,000 · Available balance {inr(available)}</p></div>
       <label className="text-sm font-medium">Amount (INR)<input type="number" min="1000" step="0.01" max={available} required value={amount} onChange={(event) => setAmount(event.target.value)} className="mt-1 block w-full border px-3 py-2 font-normal" /></label>
       <label className="text-sm font-medium">Beneficiary name<input required maxLength={120} value={beneficiary} onChange={(event) => setBeneficiary(event.target.value)} className="mt-1 block w-full border px-3 py-2 font-normal" /></label>
-      <label className="text-sm font-medium sm:col-span-2">UPI ID<input required placeholder="name@upi" value={upi} onChange={(event) => setUpi(event.target.value)} className="mt-1 block w-full border px-3 py-2 font-normal" /></label>
+      <label className="text-sm font-medium sm:col-span-2">UPI ID<input required pattern="[A-Za-z0-9._-]{2,256}@[A-Za-z0-9.-]{2,64}" title="Enter a valid UPI ID, for example name@upi" placeholder="name@upi" value={upi} onChange={(event) => setUpi(event.target.value)} className="mt-1 block w-full border px-3 py-2 font-normal" /></label>
       <p className="border-l-2 border-indigo-500 bg-indigo-50 px-4 py-3 text-xs leading-5 text-slate-600 sm:col-span-2">The requested amount is reserved while the admin processes it. Your payout history updates when the transfer is marked successful.</p>
       <div className="flex gap-2 sm:col-span-2"><button disabled={busy} className="border bg-indigo-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Submitting…" : "Submit request"}</button><button type="button" onClick={() => setShowRequest(false)} className="border px-4 py-2 text-sm">Cancel</button></div>
     </form>}
