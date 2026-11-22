@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext"; // adjust path if needed
+import { getNotificationPreferences, updateNotificationPreferences } from "@/app/services/NotificationService";
 
 const API = process.env.NEXT_PUBLIC_APP_URL;
 
@@ -28,6 +29,9 @@ export default function SettingsPage() {
   // Notification preferences
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [pushNotifs, setPushNotifs] = useState(true);
+  const [preferencesLoading, setPreferencesLoading] = useState(true);
+  const [savingNotificationPreference, setSavingNotificationPreference] = useState(false);
+  const [notificationPreferenceError, setNotificationPreferenceError] = useState("");
   const [internshipAlerts, setInternshipAlerts] = useState(true);
   const [courseUpdates, setCourseUpdates] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
@@ -43,6 +47,35 @@ export default function SettingsPage() {
 
   const router = useRouter();
   const { logout } = useAuth(); // use your auth context
+
+  useEffect(() => {
+    let active = true;
+    getNotificationPreferences()
+      .then((preferences) => { if (active) setPushNotifs(preferences.in_app_enabled); })
+      .catch((error) => {
+        console.error("Could not load notification preferences", error);
+        if (active) setNotificationPreferenceError("Could not load your saved notification preference. Try again in a moment.");
+      })
+      .finally(() => { if (active) setPreferencesLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  const saveInAppNotifications = async (enabled: boolean) => {
+    const previous = pushNotifs;
+    setPushNotifs(enabled);
+    setSavingNotificationPreference(true);
+    setNotificationPreferenceError("");
+    try {
+      const saved = await updateNotificationPreferences({ in_app_enabled: enabled });
+      setPushNotifs(saved.in_app_enabled);
+    } catch (error) {
+      setPushNotifs(previous);
+      console.error("Could not save notification preferences", error);
+      setNotificationPreferenceError("Could not update notification settings. Please try again.");
+    } finally {
+      setSavingNotificationPreference(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -84,7 +117,7 @@ export default function SettingsPage() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Session expired. Please login again.");
 
-      const res = await fetch(`${API}/api/users/profile/delete/`, {
+      const res = await fetch(`${API}/api/auth/profile/delete/`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -173,6 +206,16 @@ export default function SettingsPage() {
                 })}
               </nav>
 
+              <div className="border-t border-gray-100 p-2">
+                <Link href="/profile/invoices" className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-50 transition-all">
+                  <div className="p-2 bg-blue-50"><FileText className="w-5 h-5 text-blue-600" /></div>
+                  <div>
+                    <p className="font-medium text-sm">Invoices</p>
+                    <p className="text-xs text-gray-500 mt-0.5">View your course payments</p>
+                  </div>
+                </Link>
+              </div>
+
               {/* Logout */}
               <div className="border-t border-gray-100 p-2">
                 <button
@@ -247,10 +290,10 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <h2 className="text-lg font-semibold text-gray-900">
-                          Push Notifications
+                          In-app Notifications
                         </h2>
                         <p className="text-sm text-gray-500">
-                          Alerts on your device
+                          Course approvals and course recommendations
                         </p>
                       </div>
                     </div>
@@ -258,11 +301,14 @@ export default function SettingsPage() {
 
                   <div className="divide-y divide-gray-100">
                     <ToggleRow
-                      title="Enable Push Notifications"
-                      description="Receive real-time alerts on this device"
+                      title="Enable notifications"
+                      description="Show course updates and recommendations in your notification center"
                       checked={pushNotifs}
-                      onChange={setPushNotifs}
+                      onChange={(enabled) => void saveInAppNotifications(enabled)}
+                      disabled={preferencesLoading || savingNotificationPreference}
                     />
+                    {(preferencesLoading || savingNotificationPreference) && <p className="px-6 pb-3 text-xs text-gray-500">{preferencesLoading ? "Loading preference…" : "Saving…"}</p>}
+                    {notificationPreferenceError && <p role="alert" className="px-6 pb-3 text-sm text-red-700">{notificationPreferenceError}</p>}
                     <ToggleRow
                       title="Email Digest"
                       description="Weekly summary of activity and opportunities"
@@ -320,16 +366,6 @@ export default function SettingsPage() {
                           </div>
                         </div>
                       </div>
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">
-                          In-app Notifications
-                        </h2>
-                        <p className="text-sm text-gray-500">
-                          Course approvals and course recommendations
-                        </p>
-                      </div>
-                    </div>
-                  </div>
 
                       <div className="p-6 space-y-6">
                         <p className="text-gray-600 text-sm leading-relaxed">
@@ -482,11 +518,13 @@ function ToggleRow({
   description,
   checked,
   onChange,
+  disabled = false,
 }: {
   title: string;
   description: string;
   checked: boolean;
   onChange: (value: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between px-6 py-4">
@@ -499,8 +537,9 @@ function ToggleRow({
         type="button"
         role="switch"
         aria-checked={checked}
+      disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 ${
           checked ? "bg-blue-600" : "bg-gray-200"
         }`}
       >
