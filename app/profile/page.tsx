@@ -25,7 +25,7 @@ import AuthGuard from "@/src/components/AuthGuard";
 import CertificatesPage from "./certificates/page";
 import { useRouter } from "next/navigation";
 
-const API = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "");
+const API = process.env.APP_URL?.replace(/\/+$/, "");
 
 type ApiRecord = Record<string, unknown>;
 

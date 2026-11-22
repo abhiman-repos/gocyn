@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/src/context/AuthContext";
 import { useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 interface Certificate {
   id: string;

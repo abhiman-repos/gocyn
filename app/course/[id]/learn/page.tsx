@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, CirclePlay, Download, Loader2, LockKeyhole, Play, RotateCcw } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 type Lesson = { lesson_id: string; title: string; description?: string; duration_seconds?: number | null; video_url: string; completed: boolean; last_position_seconds: number };
 type Section = { section_id: string; title: string; lessons: Lesson[] };
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 type Status = "pending" | "approved" | "rejected" | "suspended";
 type Application = {
   instructor_id: string; email: string; phone: string; status: Status;

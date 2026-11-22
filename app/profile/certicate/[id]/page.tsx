@@ -13,7 +13,7 @@ import confetti from "canvas-confetti";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 export default function CertificatePage() {
   const { id } = useParams();

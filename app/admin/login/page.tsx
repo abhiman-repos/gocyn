@@ -7,7 +7,7 @@ import { MdAdminPanelSettings, MdOutlineSecurity } from "react-icons/md";
 import { FiMail, FiLock, FiArrowLeft } from "react-icons/fi";
 import CircularText from "@/src/components/CircularText";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 async function readApiResponse(response: Response): Promise<Record<string, any>> {
   const body = await response.text();

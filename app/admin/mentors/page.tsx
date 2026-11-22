@@ -25,7 +25,7 @@ import {
 } from "@/src/components/ui/alert-dialog";
 import { toast } from "sonner";
 
-const API = process.env.NEXT_PUBLIC_APP_URL ;
+const API = process.env.APP_URL ;
 
 export default function Mentors() {
   const [mentors, setMentors] = useState<any[]>([]);

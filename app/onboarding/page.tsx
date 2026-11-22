@@ -37,7 +37,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 // ==========================================================
 // Types & constants

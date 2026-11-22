@@ -6,7 +6,7 @@ import { CheckCircle2, X } from "lucide-react";
 import { authenticatedStudentFetch } from "@/src/lib/studentAuth";
 import { useParams, useRouter } from "next/navigation";
 
-const API = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000").replace(/\/+$/, "");
+const API = (process.env.APP_URL || "http://localhost:8000").replace(/\/+$/, "");
 declare global { interface Window { Razorpay?: new (options: any) => { open: () => void; on: (event: string, callback: (response: any) => void) => void } } }
 const initial = { full_name: "", email: "", phone: "", address_line1: "", address_line2: "", city: "", state: "", postal_code: "", country: "India" };
 

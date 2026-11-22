@@ -6,7 +6,7 @@ import { toast } from "react-hot-toast";
 import { BookOpen, BriefcaseBusiness, Globe2, Mail, Pencil, Phone, Save, UserRound, X } from "lucide-react";
 import { fetchInstructorMe, type InstructorMe } from "@/src/components/libs/instructors";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 type Profile = Omit<InstructorMe, "expertise"> & {
   expertise: string[] | string; current_role: string; company: string; social_profile: string; skills: string;
   bio: string; teaching_style: string; target_audience: string;

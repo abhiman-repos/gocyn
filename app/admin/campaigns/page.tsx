@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-const API = process.env.NEXT_PUBLIC_APP_URL || "";
+const API = process.env.APP_URL || "";
 const dateLabel = (value: string) => new Date(value).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 
 export default function AdminCampaignsPage() {

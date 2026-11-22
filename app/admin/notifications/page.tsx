@@ -37,7 +37,7 @@ export default function AdminNotificationAnalyticsPage() {
     manual ? setRefreshing(true) : setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/admin/notification-analytics/`, {
+      const response = await fetch(`${process.env.APP_URL}/api/admin/notification-analytics/`, {
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
         cache: "no-store",
       });

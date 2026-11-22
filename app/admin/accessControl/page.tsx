@@ -24,7 +24,7 @@ interface Admin {
   updated_at?: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_APP_URL;
+const API_BASE = process.env.APP_URL;
 function adminHeaders(): HeadersInit {
   const token = localStorage.getItem("adminToken");
   if (!token) throw new Error("Admin session is missing. Please sign in again.");
