@@ -203,7 +203,7 @@ export default function Home() {
                     onClick={(e) => {
                       e.preventDefault();
                       window.location.replace(
-                        "http://localhost:3000/instructors/login",
+                        "https://mentor.gocyn.com/partner/login",
                       );
                     }}
                     className="group inline-flex items-center gap-2 bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-300 hover:scale-105 hover:bg-zinc-200"
