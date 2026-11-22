@@ -366,6 +366,14 @@ export default function SettingsPage() {
                           </div>
                         </div>
                       </div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900">
+                          In-app Notifications
+                        </h2>
+                        <p className="text-sm text-gray-500">
+                          Course approvals and course recommendations
+                        </p>
+                      </div>
 
                       <div className="p-6 space-y-6">
                         <p className="text-gray-600 text-sm leading-relaxed">

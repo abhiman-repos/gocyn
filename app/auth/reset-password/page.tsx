@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
@@ -19,7 +19,7 @@ const API_BASE_URL = (
   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000"
 ).replace(/\/+$/, "");
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
   const router = useRouter();
 
   const [uid, setUid] = useState("");
@@ -338,5 +338,13 @@ export default function ResetPassword() {
         </p>
       </motion.section>
     </main>
+  );
+}
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={<main className="flex min-h-[60vh] items-center justify-center text-sm text-slate-500">Loading password reset…</main>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
