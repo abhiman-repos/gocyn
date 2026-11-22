@@ -298,7 +298,7 @@ export default function ContactPage() {
             <p className="mx-auto mt-6 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg md:text-xl">
 
               Have questions about internships,
-              opportunities, partnerships, or Gocyn?
+              opportunities, instructorships, or Gocyn?
               Get in touch and we&apos;ll be happy to
               help.
 
@@ -673,7 +673,7 @@ export default function ContactPage() {
 
                         Have a question about an
                         internship, the platform, a
-                        partnership, or something else?
+                        instructorship, or something else?
                         Send us a message.
 
                       </p>
@@ -791,7 +791,7 @@ export default function ContactPage() {
                           required
                           minLength={3}
                           maxLength={150}
-                          placeholder="Internship enquiry, partnership, support..."
+                          placeholder="Internship enquiry, instructorship, support..."
                           className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                         />
 
@@ -839,7 +839,7 @@ export default function ContactPage() {
                             minLength={10}
                             maxLength={1000}
                             rows={7}
-                            placeholder="Tell us how we can help with internships, opportunities, partnerships, or your enquiry..."
+                            placeholder="Tell us how we can help with internships, opportunities, instructorships, or your enquiry..."
                             className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/50 py-3.5 pl-11 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                           />
 

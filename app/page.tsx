@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -8,6 +8,7 @@ import {
   Star,
   Clock,
   Users,
+  ArrowLeft,
   ArrowRight,
   Search,
   Zap,
@@ -18,15 +19,17 @@ import {
   Target,
   IndianRupee,
   Sparkles,
+  Section,
 } from "lucide-react";
 import { FaBuilding, FaUserGraduate } from "react-icons/fa";
 import CountUp from "@/src/components/CountUp";
 import { useRouter } from "next/navigation";
-import { GraduationCap, FileText } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
 import FAQPage from "@/src/components/FQPage";
-import Image from "next/image";
 import HeroPanels from "@/src/components/Heropanel";
+import CourseCard from "@/src/components/pages/CourseCard";
+import { RecommendedCoursesSection, TrendingCoursesSection } from "@/src/components/CourseSection";
+import CourseSponsorSection from "@/src/components/CourseSponsorSection";
 
 const API = process.env.NEXT_PUBLIC_APP_URL;
 
@@ -37,198 +40,53 @@ const stats = [
   { label: "Expert Mentors", value: 80, suffix: "+", icon: Users },
   { label: "Success Rate", value: 94, suffix: "%", icon: Star },
   { label: "Hours of Content", value: 5, suffix: "k+", icon: Clock },
-
 ];
 
-// ================= COURSE CARD =================
-const CourseCard = ({ item }: any) => {
-  const router = useRouter();
-
-  return (
-    <motion.div
-      whileHover={{ y: -8 }}
-      onClick={() => router.push(`/course/${item._id}`)}
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group cursor-pointer w-full"
-    >
-      {/* IMAGE & BADGE */}
-      <div className="relative h-40 sm:h-44 overflow-hidden rounded-t-2xl">
-        <img
-          src={item.imageUrl || "/placeholder.jpg"}
-          className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-          alt={item.title}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-
-        {/* Category / Level Badge (e.g., "Beginner", "Best Seller", "Live") */}
-        <div className="absolute top-3 right-3 text-xs px-3 py-1 rounded-full bg-blue-600/90 text-white font-semibold backdrop-blur-md">
-          {item.level || item.category || "Course"}
-        </div>
-      </div>
-
-      {/* CONTENT */}
-      <div className="p-4 sm:p-5 space-y-3">
-        {/* Title */}
-        <h3 className="text-sm sm:text-base font-bold text-gray-900 group-hover:text-blue-600 transition line-clamp-1">
-          {item.title}
-        </h3>
-
-        {/* Instructor or Platform Name */}
-        <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1.5">
-          <FaUserGraduate className="text-gray-400" />
-          By {item.instructor || item.provider || "Industry Expert"}
-        </p>
-
-        {/* Course Metadata (Duration & Lessons/Rating) */}
-        <div className="flex justify-between text-xs sm:text-sm text-gray-600 pt-2">
-          <span className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-lg">
-            <Clock size={14} className="text-blue-600" />
-            {item.duration || "10+ Hours"}
-          </span>
-
-          {/* Location ki jagah humne BookOpen (Lectures) ya Star (Rating) laga diya hai */}
-          <span className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg">
-            <BookOpen size={14} className="text-purple-600" />
-            {item.lessons ? `${item.lessons} Lessons` : `${item.rating || "4.8"} ★`}
-          </span>
-        </div>
-
-        {/* FOOTER: Price & CTA */}
-        <div className="flex justify-between items-center pt-3 border-t">
-          <div className="flex items-center gap-1">
-            <span className="text-base sm:text-lg font-bold text-blue-600 flex items-center">
-              <IndianRupee size={16} /> {item.price || "Free"}
-            </span>
-            {item.originalPrice && (
-              <span className="text-xs text-gray-400 line-through">
-                ₹{item.originalPrice}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-700 group-hover:text-blue-600">
-            <Sparkles size={14} className="text-yellow-500" />
-            Start Learning
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-// ================= INTERNSHIP CARD (STRUCTURE UNCHANGED) =================
-const InternshipCard = ({ item }: any) => {
-  const router = useRouter();
-
-  return (
-    <motion.div
-      whileHover={{ y: -8 }}
-      onClick={() => router.push(`/internship/${item._id}`)}
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group cursor-pointer w-full"
-    >
-      {/* IMAGE */}
-      <div className="relative h-40 sm:h-44 overflow-hidden rounded-t-2xl">
-        <img
-          src={item.imageUrl || "/placeholder.jpg"}
-          className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-          alt={item.title}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        <div className="absolute top-3 right-3 text-xs px-3 py-1 rounded-full bg-blue-600/90 text-white font-semibold backdrop-blur-md">
-          {item.status}
-        </div>
-      </div>
-
-      {/* CONTENT */}
-      <div className="p-4 sm:p-5 space-y-3">
-        <h3 className="text-sm sm:text-base font-bold text-gray-900 group-hover:text-blue-600 transition line-clamp-1">
-          {item.title}
-        </h3>
-
-        <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
-          <FaBuilding className="text-gray-400" />
-          {item.company}
-        </p>
-
-        <div className="flex justify-between text-xs sm:text-sm text-gray-600 pt-2">
-          <span className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-lg">
-            <Clock size={14} className="text-blue-600" />
-            {item.duration}
-          </span>
-          <span className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg">
-            <MapPin size={14} className="text-purple-600" />
-            {item.location}
-          </span>
-        </div>
-
-        <div className="flex justify-between items-center pt-3 border-t">
-          <span className="text-base sm:text-lg font-bold text-blue-600 flex items-center gap-1">
-            <IndianRupee size={16} /> {item.stipend}
-          </span>
-          <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-700 group-hover:text-blue-600">
-            <FaUserGraduate size={14} />
-            Enroll Now
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// ================= MENTOR CARD (STRUCTURE UNCHANGED) =================
 const MentorCard = ({ mentor }: any) => {
+  const expertise = Array.isArray(mentor.expertise)
+    ? mentor.expertise
+    : typeof mentor.expertise === "string"
+      ? mentor.expertise.split(",").map((item: string) => item.trim()).filter(Boolean)
+      : [];
+
   return (
-    <motion.div
-      whileHover={{ y: -6 }}
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer overflow-hidden"
+    <Link href={`/instructors/${mentor._id}`} className="block w-[300px] shrink-0 snap-start">
+    <motion.article
+      whileHover={{ y: -4 }}
+      className="overflow-hidden border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-indigo-300 hover:shadow-xl"
     >
-      {/* Image with experience badge */}
-      <div className="relative h-40 sm:h-48 overflow-hidden">
+      <div className="relative aspect-video overflow-hidden bg-slate-100">
         <img
           src={mentor.imageUrl || "/placeholder.jpg"}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
           alt={mentor.name}
         />
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        {/* Experience badge – highlighted */}
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-blue-600 px-3 py-1 rounded-full text-xs font-bold shadow">
-          {mentor.experience} yrs exp
-        </div>
+        <span className="absolute left-3 top-3 bg-white/95 px-2.5 py-1 text-xs font-semibold text-slate-700">Approved mentor</span>
+        {mentor.experience > 0 && <span className="absolute right-3 top-3 bg-slate-950/75 px-2.5 py-1 text-xs font-semibold text-white">{mentor.experience} years</span>}
       </div>
 
-      {/* Card content */}
-      <div className="p-4 sm:p-5 space-y-3">
-        {/* Name & Email */}
-        <div>
-          <h3 className="font-bold text-gray-900 text-base sm:text-lg leading-tight">
-            {mentor.name}
-          </h3>
-          <p className="text-xs text-gray-500 truncate">{mentor.email}</p>
+      <div className="flex min-h-[220px] flex-col p-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-700">{mentor.currentRole || mentor.company || "Industry mentor"}</p>
+        <h3 className="mt-1 line-clamp-1 text-base font-bold text-slate-900">{mentor.name || "Gocyn mentor"}</h3>
+        <p className="mt-2 line-clamp-3 flex-1 text-sm leading-5 text-slate-600">{mentor.bio || "Connect with this approved mentor to learn from their experience."}</p>
+        {expertise.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{expertise.slice(0, 3).map((skill: string) => <span key={skill} className="bg-slate-100 px-2 py-1 text-[11px] text-slate-600">{skill}</span>)}</div>}
+        <div className="mt-4 border-t border-slate-100 pt-3">
+          <span className="inline-flex items-center gap-2 bg-indigo-700 px-3 py-2 text-xs font-semibold text-white">View instructor profile <ArrowRight size={14}/></span>
         </div>
-
-        {/* Expertise with icon – fixed size */}
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-          <GraduationCap size={16} className="text-blue-500 shrink-0" />
-          <span className="line-clamp-1">{mentor.expertise}</span>
-        </div>
-
-        {/* Bio with icon – fixed size */}
-        <div className="flex items-start gap-2 text-xs sm:text-sm text-gray-500">
-          <FileText size={14} className="text-gray-400 mt-0.5 shrink-0" />
-          <p className="line-clamp-2">{mentor.bio || "No bio available"}</p>
-        </div>
-
-        {/* Optional View Profile link */}
       </div>
-    </motion.div>
+    </motion.article>
+    </Link>
   );
 };
 // ================= MAIN COMPONENT =================
 export default function Home() {
   const [internships, setInternships] = useState<any[]>([]);
   const [mentors, setMentors] = useState<any[]>([]);
+  const [mentorsError, setMentorsError] = useState("");
   const [loadings, setLoading] = useState(true);
   const [imgIndex, setImgIndex] = useState(0);
   const [courses, setCourses] = useState<any[]>([]);
+  const mentorsRailRef = useRef<HTMLDivElement>(null);
 
   const { user, loading } = useAuth();
 
@@ -237,26 +95,39 @@ export default function Home() {
   // Fetch Data
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [iRes, mRes, cRes] = await Promise.all([
-          fetch(`${API}/upload/internships/list/`),
-          fetch(`${API}/api/mentors/list/`),
-          fetch(`${API}/api/courses/list/`)
-        ]);
-        const internshipsData = await iRes.json();
-        const mentorsData = await mRes.json();
-        const coursesData = await cRes.json();
-        
-        setInternships(internshipsData.slice(0, 4));
-        setMentors(mentorsData.slice(0, 4));
-        setCourses(coursesData.slice(0, 4));
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      } finally {
-        setLoading(false);
+      const fetchList = async (url: string, key: string) => {
+        const response = await fetch(url, { cache: "no-store" });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.detail || `Request failed (${response.status})`);
+        if (Array.isArray(data)) return data;
+        if (Array.isArray(data?.[key])) return data[key];
+        if (Array.isArray(data?.results)) return data.results;
+        return [];
+      };
+
+      const [internshipResult, mentorResult, courseResult] = await Promise.allSettled([
+        fetchList(`${API}/upload/internships/list/`, "internships"),
+        fetchList(`${API}/api/mentors/list/`, "mentors"),
+        fetchList(`${API}/api/courses/list/`, "courses"),
+      ]);
+
+      if (internshipResult.status === "fulfilled") setInternships(internshipResult.value.slice(0, 4));
+      else console.error("Could not load internships:", internshipResult.reason);
+
+      if (mentorResult.status === "fulfilled") {
+        setMentors(mentorResult.value.slice(0, 8));
+        setMentorsError(mentorResult.value.length ? "" : "No approved mentors are available yet.");
+      } else {
+        console.error("Could not load approved mentors:", mentorResult.reason);
+        setMentorsError("Approved mentors could not be loaded. Please try again later.");
       }
+
+      if (courseResult.status === "fulfilled") setCourses(courseResult.value.slice(0, 8));
+      else console.error("Could not load published courses:", courseResult.reason);
+
+      setLoading(false);
     };
-    fetchData();
+    void fetchData();
   }, []);
 
   if (loading) return null;
@@ -317,7 +188,7 @@ export default function Home() {
 
                   <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
                     Promote your brand, collaborate with our ecosystem, and
-                    unlock premium partnership opportunities through our
+                    unlock premium instructorship opportunities through our
                     platform.
                   </p>
                 </motion.div>
@@ -329,11 +200,10 @@ export default function Home() {
                   transition={{ duration: 0.4 }}
                 >
                   <a
-                    
                     onClick={(e) => {
                       e.preventDefault();
                       window.location.replace(
-                        "https://mentor.gocyn.com/partner/login",
+                        "http://localhost:3000/instructors/login",
                       );
                     }}
                     className="group inline-flex items-center gap-2 bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-300 hover:scale-105 hover:bg-zinc-200"
@@ -367,69 +237,11 @@ export default function Home() {
         )}
       </div>
 
-      {/* FEATURED INTERNSHIPS SECTION */}
-      <section className="max-w-7xl mx-auto px-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10 px-2">
-          <div className="space-y-1">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900">
-              Featured Internships
-            </h2>
-            <p className="text-gray-500">
-              The most recent opportunities from top-tier companies.
-            </p>
-          </div>
-          <Link
-            href="/internships"
-            className="text-blue-600 font-bold hover:underline flex items-center gap-1 whitespace-nowrap"
-          >
-            View All Opportunities <ArrowRight size={18} />
-          </Link>
-        </div>
-
-        {/* Cards Container - Yeh part change kiya hai */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {loadings
-            ? [1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="w-full h-72 sm:h-80 md:h-84 bg-gray-100 animate-pulse rounded-3xl"
-              />
-            ))
-            : internships.map((i) => <InternshipCard key={i._id} item={i} />)}
-        </div>
-      </section>
-
-      {/* FEATURED COURSES SECTION */}
-      <section className="max-w-7xl mx-auto px-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10 px-2">
-          <div className="space-y-1">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900">
-              Popular Courses
-            </h2>
-            <p className="text-gray-500">
-              Upgrade your skills with industry-recognized certification courses.
-            </p>
-          </div>
-          <Link
-            href="/courses"
-            className="text-blue-600 font-bold hover:underline flex items-center gap-1 whitespace-nowrap"
-          >
-            View All Courses <ArrowRight size={18} />
-          </Link>
-        </div>
-
-        {/* Grid Container */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {loadings
-            ? [1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="w-full h-72 sm:h-80 md:h-84 bg-gray-100 animate-pulse rounded-3xl"
-              />
-            ))
-            : courses.map((c) => <CourseCard key={c._id} item={c} />)}
-        </div>
-      </section>
+      <CourseSponsorSection />
+      <>
+        <TrendingCoursesSection initialCourses={courses} loading={loadings} />
+      </>
+      <RecommendedCoursesSection initialCourses={courses} user={user} />
 
       {/* HOW IT WORKS */}
       <section className="py-16 md:py-20 bg-gray-50 border-y border-gray-100">
@@ -715,26 +527,26 @@ export default function Home() {
             </p>
           </div>
 
-          {/* ✅ fixed link */}
-          <Link
-            href="/mentors"
-            className="text-blue-600 font-bold hover:underline flex items-center gap-1"
-          >
-            View All Mentors <ArrowRight size={18} />
-          </Link>
+          <div className="flex items-center gap-3">
+            <div className="hidden gap-1 sm:flex">
+              <button type="button" aria-label="Previous mentors" onClick={() => mentorsRailRef.current?.scrollBy({ left: -340, behavior: "smooth" })} className="grid h-9 w-9 place-items-center border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-700"><ArrowLeft size={16}/></button>
+              <button type="button" aria-label="Next mentors" onClick={() => mentorsRailRef.current?.scrollBy({ left: 340, behavior: "smooth" })} className="grid h-9 w-9 place-items-center border border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-700"><ArrowRight size={16}/></button>
+            </div>
+            <Link href="/mentors" className="flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:underline">View All Mentors <ArrowRight size={16}/></Link>
+          </div>
         </div>
 
-        {/* ✅ FIXED GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        <div ref={mentorsRailRef} className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "thin" }}>
           {loadings
             ? [1, 2, 3, 4].map((i) => (
-              // ✅ FIXED SKELETON
-              <div
-                key={i}
-                className="w-full aspect-[4/5] bg-gray-100 animate-pulse rounded-2xl"
-              />
-            ))
-            : mentors.map((m) => <MentorCard key={m._id} mentor={m} />)}
+                <div
+                  key={i}
+                  className="h-[420px] w-[300px] shrink-0 animate-pulse border border-slate-200 bg-white"
+                />
+              ))
+            : mentors.length > 0
+              ? mentors.map((m) => <MentorCard key={m._id} mentor={m} />)
+              : <p className="w-full border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm text-slate-500">{mentorsError || "Approved mentors will appear here soon."}</p>}
         </div>
       </section>
 

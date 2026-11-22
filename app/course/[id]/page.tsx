@@ -1,128 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/src/context/AuthContext";
 import {
   ArrowLeft,
   Loader2,
-  Users,
   Target,
   CheckCircle,
   PlayCircle,
   BookOpen,
   MonitorPlay,
-  Infinity as InfinityIcon,
   Star,
-  Globe,
   Award,
   AlertCircle,
   Clock,
   ChevronDown,
   ChevronUp,
-  ShoppingCart,
-  ThumbsUp,
   Lock,
+  GraduationCap,
+  Share2,
 } from "lucide-react";
+import PurchaseCard from "@/src/components/pages/PurchaseCard";
+import CourseSponsorSection from "@/src/components/CourseSponsorSection";
 
 const API = process.env.NEXT_PUBLIC_APP_URL;
-
-const CURRICULUM_FALLBACK = [
-  {
-    section: "Getting Started",
-    lessons: [
-      { title: "Course Introduction", duration: "5:20", preview: true },
-      { title: "Setting Up Your Environment", duration: "12:40", preview: false },
-    ],
-  },
-  {
-    section: "Core Concepts",
-    lessons: [
-      { title: "Fundamentals Deep Dive", duration: "22:10", preview: false },
-      { title: "Hands-on Practice", duration: "18:35", preview: false },
-      { title: "Common Pitfalls", duration: "9:50", preview: false },
-    ],
-  },
-  {
-    section: "Building the Project",
-    lessons: [
-      { title: "Project Setup", duration: "14:00", preview: false },
-      { title: "Feature Implementation", duration: "31:15", preview: false },
-      { title: "Testing & Debugging", duration: "16:45", preview: false },
-    ],
-  },
-];
-
-const REVIEWS_FALLBACK = [
-  {
-    name: "Priya Sharma",
-    rating: 5,
-    date: "2 weeks ago",
-    comment:
-      "Really well structured course. The instructor explains concepts clearly and the projects are practical, not just theory.",
-    helpful: 24,
-  },
-  {
-    name: "Rahul Verma",
-    rating: 5,
-    date: "1 month ago",
-    comment:
-      "Best course I've taken on this topic. Went from confused to confident in a couple of weeks.",
-    helpful: 18,
-  },
-  {
-    name: "Ananya Singh",
-    rating: 4,
-    date: "1 month ago",
-    comment:
-      "Solid content overall. Would love a bit more depth in the advanced sections, but great value.",
-    helpful: 9,
-  },
-];
-
-const RATING_BREAKDOWN = [
-  { stars: 5, pct: 78 },
-  { stars: 4, pct: 15 },
-  { stars: 3, pct: 5 },
-  { stars: 2, pct: 1 },
-  { stars: 1, pct: 1 },
-];
-
-const ALSO_BOUGHT_FALLBACK = [
-  {
-    id: "1",
-    title: "Advanced Problem Solving Techniques",
-    instructor: "Vikram Rao",
-    price: 799,
-    rating: 4.7,
-    ratingCount: 892,
-    image:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400",
-  },
-  {
-    id: "2",
-    title: "Complete Interview Preparation Guide",
-    instructor: "Sneha Iyer",
-    price: 999,
-    rating: 4.8,
-    ratingCount: 1540,
-    image:
-      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=400",
-  },
-  {
-    id: "3",
-    title: "Project-Based Learning Bootcamp",
-    instructor: "Arjun Mehta",
-    price: 1299,
-    rating: 4.6,
-    ratingCount: 634,
-    image:
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=400",
-  },
-];
 
 export default function CourseDetail() {
   const params = useParams();
@@ -132,8 +36,22 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [pendingPayment, setPendingPayment] = useState<any>(null);
+  const [learningData, setLearningData] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [suggestedCourses, setSuggestedCourses] = useState<any[]>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [activeVideoUrl, setActiveVideoUrl] = useState("");
+  const [previewPlaying, setPreviewPlaying] = useState(false);
+  const [activeLessonId, setActiveLessonId] = useState("");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const resumePositionRef = useRef(0);
+  const lastPlaybackSavedAtRef = useRef(0);
+  const playbackSaveInFlightRef = useRef(false);
+  const latestPlaybackRef = useRef({ lessonId: "", position: 0 });
 
-  // Modal States
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -141,6 +59,7 @@ export default function CourseDetail() {
     "success",
   );
   const [openSections, setOpenSections] = useState<number[]>([0]);
+  const [shareMessage, setShareMessage] = useState("");
 
   const toggleSection = (idx: number) => {
     setOpenSections((prev) =>
@@ -148,15 +67,28 @@ export default function CourseDetail() {
     );
   };
 
-  const curriculum = course?.curriculum || CURRICULUM_FALLBACK;
-  const reviews = course?.reviews || REVIEWS_FALLBACK;
-  const relatedCourses = course?.relatedCourses || ALSO_BOUGHT_FALLBACK;
-  const avgRating = course?.avgRating || 4.9;
-  const ratingCount = course?.ratingCount || 1240;
+  const durationLabel = (seconds?: number | null) => seconds == null ? "" : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const playbackLabel = (seconds?: number | null) => {
+    const value = Math.max(0, Math.floor(seconds || 0));
+    return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
+  };
+  const curriculum = learningData?.sections?.length
+    ? learningData.sections.map((section: any) => ({ section: section.title, lessons: section.lessons.map((lesson: any) => ({ ...lesson, duration: durationLabel(lesson.duration_seconds), preview: true, accessible: true })) }))
+    : (course?.curriculum || []).map((section: any) => ({ ...section, lessons: (section.lessons || []).map((lesson: any) => ({ ...lesson, preview: Boolean(lesson.is_preview), accessible: Boolean(lesson.is_preview), duration: durationLabel(lesson.duration_seconds) })), section: section.section || section.title }));
+  const relatedCourses = suggestedCourses;
+  const avgRating = Number(course?.avgRating) || (reviews.length ? reviews.reduce((sum: number, review: any) => sum + (Number(review.rating) || 0), 0) / reviews.length : 0);
+  const learningOutcomes = Array.isArray(course?.learning_outcomes) ? course.learning_outcomes.filter(Boolean) : [];
+  const requirements = course?.prerequisites || course?.requirements || "";
   const totalLessons = curriculum.reduce(
     (sum: number, s: any) => sum + s.lessons.length,
     0,
   );
+  const learningLessons = (learningData?.sections || []).flatMap((section: any) =>
+    (section.lessons || []).map((lesson: any) => ({ ...lesson, section_title: section.title })),
+  );
+  const resumeLesson = learningLessons.find((lesson: any) => !lesson.completed && lesson.last_position_seconds > 0)
+    || learningLessons.find((lesson: any) => !lesson.completed);
+  const activeLesson = learningLessons.find((lesson: any) => lesson.lesson_id === activeLessonId);
 
   const router = useRouter();
   const { user } = useAuth();
@@ -172,19 +104,120 @@ export default function CourseDetail() {
     setShowEnrollModal(true);
   };
 
+  const shareCourse = async () => {
+    const courseUrl = `${window.location.origin}/course/${encodeURIComponent(courseId)}`;
+    const shareData = { title: course?.title || "Course", text: `Explore ${course?.title || "this course"} on Gocyn.`, url: courseUrl };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(courseUrl);
+        setShareMessage("Course link copied. Share it with a student.");
+        window.setTimeout(() => setShareMessage(""), 3000);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(courseUrl);
+        setShareMessage("Course link copied. Share it with a student.");
+        window.setTimeout(() => setShareMessage(""), 3000);
+      } catch {
+        setShareMessage("Could not share this course link. Copy the page address from your browser.");
+        window.setTimeout(() => setShareMessage(""), 4000);
+      }
+    }
+  };
+
+  const submitReview = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    if (!isEnrolled) return;
+    try {
+      setIsSubmittingReview(true);
+      const response = await fetch(`${API}/api/courses/${courseId}/reviews/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ rating: reviewRating, comment: reviewComment.trim() }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || data.error || "Your review could not be submitted.");
+      const submittedReview = data.review || data;
+      setReviews(current => [submittedReview, ...current.filter(review => review.id !== submittedReview.id)]);
+      setReviewComment("");
+      showModal("Review submitted", "Thanks for sharing your experience with this course.", "success");
+    } catch (error: any) {
+      showModal("Review not submitted", error.message || "Please try again.", "error");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const openLearningSpace = async (token: string, courseIdentifier: string) => {
+    const response = await fetch(`${API}/api/courses/${courseIdentifier}/learning/`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const learning = await response.json().catch(() => ({}));
+    if (!response.ok || !learning.course) {
+      throw new Error(learning.detail || "Your course access could not be loaded. Please try again.");
+    }
+    setIsEnrolled(true);
+    setLearningData(learning);
+    router.push(`/course/${courseIdentifier}/learn`);
+  };
+
+  const verifyCoursePayment = async (payment: any, token: string, courseIdentifier: string) => {
+    const verification = await fetch(`${API}/api/courses/${courseIdentifier}/payment-verify/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payment),
+    });
+    const verified = await verification.json().catch(() => ({}));
+    if (!verification.ok) throw new Error(verified.detail || "Payment could not be verified.");
+    setPendingPayment(null);
+    await openLearningSpace(token, courseIdentifier);
+  };
+
   const handleEnroll = async () => {
     if (!user) {
       router.push("/login");
       return;
     }
 
-    if (isEnrolled || isEnrolling) return;
+    const courseIdentifier = String(course._id || course.id || courseId || "");
+    if (!courseIdentifier) return;
+    if (isEnrolling) return;
+    if (isEnrolled) {
+      try {
+        setIsEnrolling(true);
+        const token = localStorage.getItem("token");
+        if (!token) { router.push("/login"); return; }
+        await openLearningSpace(token, courseIdentifier);
+      } catch (error: any) {
+        showModal("Course unavailable", error.message || "Your course could not be opened. Please try again.", "error");
+      } finally { setIsEnrolling(false); }
+      return;
+    }
 
+    let checkoutOpened = false;
     try {
       setIsEnrolling(true);
       const token = localStorage.getItem("token");
-      const courseIdentifier = course._id || course.id; // Fallback for id
+      if (!token) { router.push("/login"); return; }
+      if (pendingPayment?.courseId === courseIdentifier) {
+        await verifyCoursePayment(pendingPayment.payment, token, courseIdentifier);
+        return;
+      }
 
+      const numericCoursePrice = Number(course.price);
+      const isPaidCourse = Number.isFinite(numericCoursePrice) && numericCoursePrice > 0;
+      if (isPaidCourse) {
+        router.push(`/course/${courseIdentifier}/checkout`);
+        return;
+      }
       const res = await fetch(`${API}/api/courses/enroll/`, {
         method: "POST",
         headers: {
@@ -199,15 +232,10 @@ export default function CourseDetail() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Enrollment failed");
+        throw new Error(data.detail || data.error || "Enrollment failed");
       }
 
-      setIsEnrolled(true);
-      showModal(
-        "Enrollment Successful!",
-        "Welcome to the course! You can now start learning from your dashboard.",
-        "success",
-      );
+      await openLearningSpace(token, courseIdentifier);
     } catch (err: any) {
       showModal(
         "Enrollment Failed",
@@ -215,7 +243,7 @@ export default function CourseDetail() {
         "error",
       );
     } finally {
-      setIsEnrolling(false);
+      if (!checkoutOpened) setIsEnrolling(false);
     }
   };
 
@@ -239,9 +267,9 @@ export default function CourseDetail() {
       try {
         const res = await fetch(`${API}/api/courses/${courseId}/`);
         if (!res.ok) throw new Error("Failed to fetch");
-
         const data = await res.json();
         setCourse(data);
+        setReviews(Array.isArray(data.reviews) ? data.reviews : []);
       } catch (err) {
         console.error("API Error:", err);
       } finally {
@@ -251,6 +279,137 @@ export default function CourseDetail() {
 
     fetchCourse();
   }, [courseId]);
+
+  useEffect(() => {
+    if (!course) return;
+    if (Array.isArray(course.relatedCourses) && course.relatedCourses.length) {
+      setSuggestedCourses(course.relatedCourses);
+      return;
+    }
+    let cancelled = false;
+    void fetch(`${API}/api/courses/list/`, { cache: "no-store" })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (cancelled || !data) return;
+        const rows = Array.isArray(data) ? data : data.courses || data.results || [];
+        const currentId = String(course._id || course.id || courseId);
+        const sameCategory = rows.filter((item: any) => String(item._id || item.id) !== currentId && (!course.category || item.category === course.category));
+        const suggestions = (sameCategory.length ? sameCategory : rows.filter((item: any) => String(item._id || item.id) !== currentId)).slice(0, 4);
+        setSuggestedCourses(suggestions);
+      }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [course, courseId]);
+
+  useEffect(() => {
+    if (!courseId || !user || !course) { setIsEnrolled(false); setLearningData(null); return; }
+    let cancelled = false;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    void fetch(`${API}/api/courses/${courseId}/enrollment/`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
+      .then(response => response.ok ? response.json() : null)
+      .then(async data => {
+        if (cancelled || !data) return;
+        setIsEnrolled(Boolean(data.enrolled));
+        if (data.enrolled) {
+          const learning = await fetch(`${API}/api/courses/${courseId}/learning/`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+          if (learning.ok && !cancelled) setLearningData(await learning.json());
+        } else setLearningData(null);
+      }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [courseId, user, course]);
+
+  const markLessonComplete = async (lessonId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const response = await fetch(`${API}/api/courses/${courseId}/lessons/${lessonId}/progress/`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    if (!response.ok) return;
+    const updated = await response.json();
+    setLearningData((current: any) => ({ ...current, ...updated, sections: current.sections.map((section: any) => ({ ...section, lessons: section.lessons.map((lesson: any) => lesson.lesson_id === lessonId ? { ...lesson, completed: true } : lesson) })) }));
+  };
+
+  const startLesson = async (lesson: any) => {
+    if (!lesson?.lesson_id) return;
+    const token = localStorage.getItem("token");
+    if (!token) { router.push("/login"); return; }
+    if (activeLessonId && activeLessonId !== lesson.lesson_id && videoRef.current) {
+      await syncPlaybackPosition(activeLessonId, videoRef.current.currentTime, true);
+    }
+    let playableLesson = lesson;
+    try {
+      const response = await fetch(`${API}/api/courses/${courseId}/learning/`, {
+        headers: { Authorization: `Bearer ${token}` }, cache: "no-store",
+      });
+      if (response.ok) {
+        const latest = await response.json();
+        setLearningData(latest);
+        playableLesson = (latest.sections || []).flatMap((section: any) => section.lessons || [])
+          .find((item: any) => item.lesson_id === lesson.lesson_id) || lesson;
+      }
+    } catch {
+      // Fall back to the already loaded lesson if a refresh is temporarily unavailable.
+    }
+    if (!playableLesson?.video_url) return;
+    const resumeAt = Math.max(0, Number(playableLesson.last_position_seconds) || 0);
+    resumePositionRef.current = resumeAt;
+    latestPlaybackRef.current = { lessonId: playableLesson.lesson_id, position: resumeAt };
+    lastPlaybackSavedAtRef.current = 0;
+    setActiveLessonId(playableLesson.lesson_id);
+    setActiveVideoUrl(playableLesson.video_url);
+  };
+
+  const syncPlaybackPosition = useCallback(async (lessonId: string, position: number, force = false) => {
+    const safePosition = Math.max(0, Math.floor(position));
+    latestPlaybackRef.current = { lessonId, position: safePosition };
+    if (!lessonId || !Number.isFinite(safePosition) || playbackSaveInFlightRef.current) return;
+    const now = Date.now();
+    if (!force && now - lastPlaybackSavedAtRef.current < 10_000) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    playbackSaveInFlightRef.current = true;
+    lastPlaybackSavedAtRef.current = now;
+    try {
+      const response = await fetch(`${API}/api/courses/${courseId}/lessons/${lessonId}/playback/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ position_seconds: safePosition }),
+        keepalive: force,
+      });
+      if (!response.ok) return;
+      setLearningData((current: any) => current ? ({
+        ...current,
+        sections: current.sections.map((section: any) => ({
+          ...section,
+          lessons: section.lessons.map((lesson: any) => lesson.lesson_id === lessonId
+            ? { ...lesson, last_position_seconds: safePosition } : lesson),
+        })),
+      }) : current);
+    } catch {
+      // The local playback continues; a later timeupdate/pause retries the save.
+    } finally {
+      playbackSaveInFlightRef.current = false;
+      const latest = latestPlaybackRef.current;
+      if (latest.lessonId === lessonId && Math.abs(latest.position - safePosition) >= 5) {
+        window.setTimeout(() => void syncPlaybackPosition(latest.lessonId, latest.position, true), 0);
+      }
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    if (!isEnrolled || !activeLessonId) return;
+    const persistPosition = () => {
+      if (latestPlaybackRef.current.lessonId !== activeLessonId) return;
+      const player = videoRef.current;
+      if (player) void syncPlaybackPosition(activeLessonId, player.currentTime, true);
+    };
+    const onVisibilityChange = () => { if (document.visibilityState === "hidden") persistPosition(); };
+    window.addEventListener("pagehide", persistPosition);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      persistPosition();
+      window.removeEventListener("pagehide", persistPosition);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [activeLessonId, isEnrolled, syncPlaybackPosition]);
 
   if (loading) {
     return (
@@ -283,105 +442,99 @@ export default function CourseDetail() {
   const category = course.category || "General";
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
-      {/* ───────────────── Hero ───────────────── */}
-      <section className="relative bg-slate-900 text-white pt-10 pb-28 sm:pb-32 px-4 sm:px-6 overflow-hidden">
+    <div className="min-h-screen bg-slate-50 pb-28">
+      {/* ───────────────── Hero (height controlled) ───────────────── */}
+      <section className="relative bg-slate-900 text-white pt-8 pb-20 sm:pb-24 lg:pb-28 px-4 sm:px-6">
         <div className="absolute inset-0">
-          <Image
+          <img
             src={bannerImage}
-            alt="Course Background"
-            fill
-            className="object-cover opacity-40"
-            priority
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover opacity-25"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/80 to-slate-900" />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/85 to-slate-900" />
         </div>
 
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="relative z-10 mx-auto max-w-7xl">
           <Link
             href="/courses"
-            className="inline-flex items-center gap-2 text-slate-300 hover:text-white mb-6 sm:mb-8 transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 text-slate-300 hover:text-white mb-7 transition-colors text-sm font-medium"
           >
             <ArrowLeft size={16} />
             <span>Back to Courses</span>
           </Link>
 
-          <div className="max-w-3xl">
-            <div className="mb-4">
+          <div className="max-w-2xl lg:max-w-3xl">
+            <div className="mb-4 flex flex-wrap items-center gap-2.5">
               <span className="inline-flex px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-indigo-600 text-white rounded-md">
                 {category}
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-5">
+            <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem]">
               {course.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-300 mb-8">
-              <div className="flex items-center gap-1.5">
-                <div className="flex text-amber-400">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} size={15} fill="currentColor" />
-                  ))}
-                </div>
-                <span className="text-white font-medium ml-1">{avgRating}</span>
-                <span className="text-slate-300">({ratingCount.toLocaleString()} ratings)</span>
-              </div>
+            <p className="mb-6 text-base leading-relaxed text-slate-300 sm:text-lg">
+              {course.description || "Explore the course curriculum and learning resources below."}
+            </p>
 
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 text-sm text-slate-300 mb-6">
               <div className="flex items-center gap-1.5">
-                <Users size={15} className="text-indigo-400" />
-                <span>Beginner to Advanced</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <Clock size={15} className="text-indigo-400" />
+                <Clock size={14} className="text-indigo-400" />
                 <span>{duration}</span>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <Globe size={15} className="text-indigo-400" />
-                <span>English / Hindi</span>
-              </div>
+              {course.level && <span className="border border-white/15 px-2.5 py-1 text-xs text-slate-200">{course.level}</span>}
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-lg text-indigo-400">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 rounded-full bg-slate-800 border-2 border-indigo-500/80 flex items-center justify-center font-bold text-base text-indigo-400">
                 {authorName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="text-slate-400 text-xs uppercase tracking-wide">
-                  Instructor
+                <p className="text-slate-400 text-[11px] uppercase tracking-wider">
+                  Created by
                 </p>
-                <p className="font-semibold text-white">{authorName}</p>
+                <p className="font-semibold text-white text-[15px]">
+                  {authorName}
+                </p>
               </div>
             </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300">
+              <span className="flex items-center gap-1.5">
+                <GraduationCap size={14} className="text-indigo-400" />
+                {totalLessons} lessons
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="button" onClick={() => void shareCourse()} className="inline-flex items-center gap-2 border border-white/30 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10" aria-label="Share course link with students">
+                <Share2 size={16} /> Share course
+              </button>
+              {shareMessage && <span role="status" className="text-sm text-emerald-200">{shareMessage}</span>}
+            </div>
           </div>
+
         </div>
       </section>
 
       {/* ───────────────── Main Content ───────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-20 -mt-16 sm:-mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="grid lg:grid-cols-12 gap-8">
-          {/* ───── Left Column (Content) ───── */}
-          <div className="lg:col-span-8 space-y-6">
+          {/* Left Column */}
+          <div className="order-last space-y-6 pt-8 lg:order-first lg:col-span-8">
             {/* What you'll learn */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+            {learningOutcomes.length > 0 && <div className="border border-slate-200 bg-white p-6 sm:p-8">
               <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2.5">
                 <Target className="text-indigo-600" size={22} />
                 What you&apos;ll learn
               </h2>
               <div className="grid sm:grid-cols-2 gap-y-4 gap-x-8">
-                {[
-                  "Build real-world projects from scratch",
-                  "Understand complex concepts easily",
-                  "Industry best practices & patterns",
-                  "Prepare for technical interviews",
-                  "Hands-on coding exercises",
-                  "Lifetime of completion",
-                ].map((item, i) => (
+                {learningOutcomes.map((item: string, i: number) => (
                   <div key={i} className="flex items-start gap-3">
                     <CheckCircle
-                      className="text-green-500 mt-0.5 shrink-0"
+                      className="text-emerald-500 mt-0.5 shrink-0"
                       size={18}
                     />
                     <span className="text-slate-600 text-sm sm:text-[15px]">
@@ -390,10 +543,10 @@ export default function CourseDetail() {
                   </div>
                 ))}
               </div>
-            </div>
+            </div>}
 
             {/* Course Content */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+            <div className="bg-white p-6 sm:p-8">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2.5">
                   <MonitorPlay className="text-indigo-600" size={22} />
@@ -402,10 +555,25 @@ export default function CourseDetail() {
               </div>
               <p className="text-sm text-slate-500 mb-6">
                 {curriculum.length} sections • {totalLessons} lectures •{" "}
-                {duration} total
+                {duration} total length
               </p>
+              {isEnrolled && learningData && <section className="mb-6 border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-5 sm:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Learning dashboard</p><h3 className="mt-1 text-lg font-bold text-slate-900">Your progress</h3><p className="mt-1 text-sm text-slate-600">Keep your momentum. Your lesson progress is saved as you learn.</p></div>
+                  <div className="text-right"><span className="text-3xl font-bold tracking-tight text-indigo-700">{learningData.progress || 0}%</span><p className="text-xs font-medium text-slate-500">course complete</p></div>
+                </div>
+                <div className="mt-5 h-2.5 overflow-hidden bg-slate-200"><div className="h-full bg-gradient-to-r from-indigo-600 to-sky-500 transition-[width] duration-500" style={{ width: `${Math.max(0, Math.min(100, learningData.progress || 0))}%` }} /></div>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="border border-slate-200 bg-white p-3"><p className="text-xs text-slate-500">Lessons completed</p><p className="mt-1 text-lg font-bold text-slate-900">{learningData.completed_lessons || 0}<span className="text-sm font-medium text-slate-400"> / {learningData.total_lessons || 0}</span></p></div>
+                  <div className="border border-slate-200 bg-white p-3"><p className="text-xs text-slate-500">Lessons remaining</p><p className="mt-1 text-lg font-bold text-slate-900">{Math.max(0, (learningData.total_lessons || 0) - (learningData.completed_lessons || 0))}</p></div>
+                  <div className="col-span-2 border border-slate-200 bg-white p-3 sm:col-span-1"><p className="text-xs text-slate-500">Learning status</p><p className="mt-1 text-sm font-bold text-emerald-700">{learningData.progress === 100 ? "Course completed" : "In progress"}</p></div>
+                </div>
+                {resumeLesson?.video_url && <button type="button" onClick={() => startLesson(resumeLesson)} className="mt-4 flex w-full items-center justify-between gap-4 border border-indigo-200 bg-white px-4 py-3 text-left hover:border-indigo-400 hover:bg-indigo-50">
+                  <span><span className="block text-xs font-semibold uppercase tracking-wide text-indigo-700">{resumeLesson.last_position_seconds > 0 ? `Resume · ${playbackLabel(resumeLesson.last_position_seconds)}` : "Continue learning"}</span><span className="mt-1 block font-semibold text-slate-900">{resumeLesson.title}</span><span className="text-xs text-slate-500">{resumeLesson.section_title}</span></span><span className="shrink-0 bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Continue</span>
+                </button>}
+              </section>}
 
-              <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-200">
+              <div className="border border-slate-200  overflow-hidden divide-y divide-slate-200">
                 {curriculum.map((section: any, idx: number) => {
                   const isOpen = openSections.includes(idx);
                   return (
@@ -431,9 +599,10 @@ export default function CourseDetail() {
                           </span>
                         </div>
                         <span className="text-xs text-slate-500 shrink-0">
-                          {section.lessons.length} lectures
+                          {section.lessons.filter((lesson: any) => lesson.completed).length}/{section.lessons.length} complete
                         </span>
                       </button>
+                      {isEnrolled && section.lessons.length > 0 && <div className="h-1 bg-slate-100"><div className="h-full bg-emerald-500 transition-[width]" style={{ width: `${section.lessons.filter((lesson: any) => lesson.completed).length / section.lessons.length * 100}%` }} /></div>}
 
                       {isOpen && (
                         <div className="divide-y divide-slate-100">
@@ -467,6 +636,8 @@ export default function CourseDetail() {
                               <span className="text-slate-400 text-xs shrink-0">
                                 {lesson.duration}
                               </span>
+                              {isEnrolled && lesson.video_url && <div className="ml-3 flex shrink-0 items-center gap-2"><button type="button" onClick={() => { setPreviewPlaying(false); startLesson(lesson); }} className="border border-indigo-200 px-3 py-1.5 font-semibold text-indigo-700 hover:bg-indigo-50">{activeLessonId === lesson.lesson_id ? "Playing" : lesson.last_position_seconds > 0 ? `Resume ${playbackLabel(lesson.last_position_seconds)}` : "Watch lesson"}</button><button type="button" onClick={() => void markLessonComplete(lesson.lesson_id)} disabled={lesson.completed} className="border border-emerald-200 px-3 py-1.5 font-semibold text-emerald-700 disabled:border-slate-200 disabled:text-slate-400">{lesson.completed ? "Completed" : "Mark done"}</button></div>}
+                              {!isEnrolled && lesson.preview && <button type="button" onClick={async () => { try { const response = await fetch(`${API}/api/courses/${courseId}/lessons/${lesson.lesson_id}/preview/`); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.detail || "Preview is not available yet."); setActiveLessonId(lesson.lesson_id); setActiveVideoUrl(data.video_url); setPreviewPlaying(true); resumePositionRef.current = 0; } catch (error: any) { showModal("Preview unavailable", error.message || "Preview is not available yet.", "info"); } }} className="ml-3 shrink-0 border border-indigo-200 px-3 py-1.5 font-semibold text-indigo-700 hover:bg-indigo-50">{previewPlaying && activeLessonId === lesson.lesson_id ? "Preview playing" : "Play preview"}</button>}
                             </div>
                           ))}
                         </div>
@@ -475,10 +646,19 @@ export default function CourseDetail() {
                   );
                 })}
               </div>
+              {(isEnrolled || previewPlaying) && activeVideoUrl && <section className="mt-6 overflow-hidden border border-slate-800 bg-slate-950 shadow-xl">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-white sm:px-5"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-300">Now learning</p><h3 className="mt-1 text-sm font-semibold">{activeLesson?.title || "Course lesson"}</h3>{activeLesson?.section_title && <p className="mt-0.5 text-xs text-slate-400">{activeLesson.section_title}</p>}</div><span className="border border-white/15 px-3 py-1 text-xs text-slate-300">Progress saved automatically</span></div>
+                <video ref={videoRef} key={activeLessonId || activeVideoUrl} src={activeVideoUrl} controls controlsList="nodownload" className="aspect-video w-full" aria-label={activeLesson?.title || "Course lesson video"}
+                  onLoadedMetadata={(event) => { const player = event.currentTarget; const position = resumePositionRef.current; if (position > 0 && (!player.duration || position < player.duration - 1)) player.currentTime = position; }}
+                  onTimeUpdate={(event) => { if (activeLessonId) void syncPlaybackPosition(activeLessonId, event.currentTarget.currentTime); }}
+                  onPause={(event) => { if (activeLessonId) void syncPlaybackPosition(activeLessonId, event.currentTarget.currentTime, true); }}
+                  onEnded={(event) => { if (activeLessonId) { void syncPlaybackPosition(activeLessonId, event.currentTarget.currentTime, true); void markLessonComplete(activeLessonId); } }} />
+              </section>}
+              {course.materials?.length > 0 && <section className="mt-6 border border-slate-200 p-5"><h3 className="font-semibold text-slate-900">Course resources</h3><ul className="mt-3 divide-y">{course.materials.map((material: any) => { const enrolledMaterial = learningData?.materials?.find((item: any) => item.material_id === material.material_id); return <li key={material.material_id} className="flex items-center justify-between gap-4 py-3 text-sm"><span className="truncate">{material.title || material.original_name}</span>{enrolledMaterial?.download_url ? <a href={enrolledMaterial.download_url} target="_blank" rel="noreferrer" className="shrink-0 font-semibold text-indigo-700 underline">Download</a> : <span className="shrink-0 text-slate-500">Enroll to access</span>}</li>;})}</ul></section>}
             </div>
 
-            {/* Full Description */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+            {/* Description */}
+            <div className="bg-white p-6 sm:p-8 ">
               <h2 className="text-xl font-bold text-slate-900 mb-5 flex items-center gap-2.5">
                 <BookOpen className="text-indigo-600" size={22} />
                 Course Description
@@ -490,15 +670,14 @@ export default function CourseDetail() {
             </div>
 
             {/* Prerequisites */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+            {requirements && <div className="border border-slate-200 bg-white p-6 sm:p-8">
               <h2 className="text-xl font-bold text-slate-900 mb-5 flex items-center gap-2.5">
                 <Award className="text-indigo-600" size={22} />
-                Prerequisites
+                Requirements
               </h2>
               <ul className="space-y-3">
                 {(
-                  course.requirements ||
-                  "A willingness to learn and a stable internet connection"
+                  requirements
                 )
                   .split("\n")
                   .map((req: string, i: number) => (
@@ -511,65 +690,67 @@ export default function CourseDetail() {
                     </li>
                   ))}
               </ul>
-            </div>
+            </div>}
 
             {/* Reviews */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+            <div className="border border-slate-200 bg-white p-6 sm:p-8">
               <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2.5">
                 <Star className="text-indigo-600" size={22} />
                 Student Reviews
               </h2>
 
-              {/* Rating summary */}
               <div className="flex flex-col sm:flex-row gap-8 mb-8 pb-8 border-b border-slate-100">
                 <div className="flex flex-col items-center justify-center shrink-0">
-                  <span className="text-5xl font-bold text-slate-900">
-                    {avgRating}
-                  </span>
+                  <span className="text-5xl font-bold text-slate-900">{avgRating ? avgRating.toFixed(1) : "—"}</span>
                   <div className="flex text-amber-400 my-1.5">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} size={16} fill="currentColor" />
+                      <Star key={i} size={16} fill={i <= Math.round(avgRating) ? "currentColor" : "none"} className={i <= Math.round(avgRating) ? "" : "text-slate-300"} />
                     ))}
                   </div>
                   <span className="text-xs text-slate-500">
-                    {ratingCount.toLocaleString()} ratings
+                    {(course.reviewsCount || reviews.length).toLocaleString()} {(course.reviewsCount || reviews.length) === 1 ? "review" : "reviews"}
                   </span>
                 </div>
 
                 <div className="flex-1 space-y-2">
-                  {RATING_BREAKDOWN.map((row) => (
-                    <div key={row.stars} className="flex items-center gap-3">
-                      <span className="text-xs text-slate-500 w-10 shrink-0">
-                        {row.stars} star
-                      </span>
-                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-amber-400 rounded-full"
-                          style={{ width: `${row.pct}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-slate-400 w-8 shrink-0">
-                        {row.pct}%
-                      </span>
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const count = reviews.filter((review: any) => Number(review.rating) === stars).length;
+                    const percent = reviews.length ? Math.round(count / reviews.length * 100) : 0;
+                    return (
+                    <div key={stars} className="flex items-center gap-3">
+                      <span className="w-10 shrink-0 text-xs text-slate-500">{stars} star</span>
+                      <div className="h-2 flex-1 overflow-hidden bg-slate-100"><div className="h-full bg-amber-400" style={{ width: `${percent}%` }} /></div>
+                      <span className="w-8 shrink-0 text-right text-xs text-slate-400">{percent}%</span>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Review list */}
+              {isEnrolled ? <form onSubmit={submitReview} className="mb-8 border border-indigo-100 bg-indigo-50/50 p-5">
+                <h3 className="font-semibold text-slate-900">Share your course review</h3>
+                <p className="mt-1 text-sm text-slate-600">Your feedback helps other learners choose their next course.</p>
+                <div className="mt-4 flex items-center gap-1" role="radiogroup" aria-label="Course rating">
+                  {[1, 2, 3, 4, 5].map(star => <button key={star} type="button" role="radio" aria-checked={reviewRating === star} aria-label={`${star} star${star === 1 ? "" : "s"}`} onClick={() => setReviewRating(star)} className="p-1 text-amber-500"><Star size={24} fill={star <= reviewRating ? "currentColor" : "none"} /></button>)}
+                  <span className="ml-2 text-sm font-medium text-slate-700">{reviewRating} out of 5</span>
+                </div>
+                <label className="mt-3 block text-sm font-medium text-slate-700">Your review<textarea required minLength={5} maxLength={2000} value={reviewComment} onChange={event => setReviewComment(event.target.value)} rows={4} placeholder="What did you learn? What stood out?" className="mt-1.5 w-full resize-y border border-slate-300 bg-white p-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" /></label>
+                <div className="mt-3 flex items-center justify-between gap-3"><span className="text-xs text-slate-500">{reviewComment.length}/2000</span><button type="submit" disabled={isSubmittingReview || reviewComment.trim().length < 5} className="border border-indigo-700 bg-indigo-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-800 disabled:cursor-not-allowed disabled:opacity-50">{isSubmittingReview ? "Submitting…" : "Submit review"}</button></div>
+              </form> : <div className="mb-8 border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">Enroll in this course to share a review.</div>}
+
               <div className="space-y-6">
-                {reviews.map((review: any, i: number) => (
+                {reviews.length === 0 ? <p className="border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-slate-500">No reviews yet. Be the first to share your experience.</p> : reviews.map((review: any, i: number) => (
                   <div
-                    key={i}
+                    key={review.review_id || review.id || i}
                     className="pb-6 border-b border-slate-100 last:border-0 last:pb-0"
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-semibold text-sm shrink-0">
-                        {review.name.charAt(0)}
+                        {(review.name || review.user_name || review.full_name || "Student").charAt(0)}
                       </div>
                       <div>
                         <p className="font-medium text-slate-800 text-sm">
-                          {review.name}
+                          {review.name || review.user_name || review.full_name || "Student"}
                         </p>
                         <div className="flex items-center gap-2">
                           <div className="flex text-amber-400">
@@ -587,175 +768,45 @@ export default function CourseDetail() {
                             ))}
                           </div>
                           <span className="text-xs text-slate-400">
-                            {review.date}
+                            {review.date || (review.created_at ? new Date(review.created_at).toLocaleDateString() : "")}
                           </span>
                         </div>
                       </div>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed mb-2">
-                      {review.comment}
+                      {review.comment || review.review}
                     </p>
-                    <button className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-600 transition-colors">
-                      <ThumbsUp size={13} />
-                      Helpful ({review.helpful})
-                    </button>
                   </div>
                 ))}
               </div>
             </div>
+
+            <section className="border border-slate-200 bg-white p-6 sm:p-8">
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.15em] text-indigo-700">Keep learning</p><h2 className="mt-1 text-xl font-bold text-slate-900">Course suggestions</h2><p className="mt-1 text-sm text-slate-500">Explore more courses you may enjoy.</p></div><Link href="/courses" className="text-sm font-semibold text-indigo-700 hover:underline">Browse all courses</Link></div>
+              <div className="mb-8"><CourseSponsorSection /></div>
+              {relatedCourses.length ? <div className="grid gap-4 sm:grid-cols-2">
+                {relatedCourses.slice(0, 4).map((rc: any) => {
+                  const suggestionId = rc._id || rc.id || rc.course_id;
+                  const suggestionImage = rc.thumbnail_url || rc.thumbnail || rc.imageUrl || rc.image;
+                  return <Link key={suggestionId} href={`/course/${suggestionId}`} className="group overflow-hidden border border-slate-200 bg-white transition-shadow hover:shadow-md">
+                    <div className="relative aspect-video bg-slate-100">{suggestionImage ? <img src={suggestionImage} alt={rc.title || "Course"} className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]" /> : <div className="flex h-full items-center justify-center text-sm text-slate-400">Course preview</div>}</div>
+                    <div className="p-4"><h3 className="line-clamp-2 font-semibold text-slate-900">{rc.title}</h3><p className="mt-1 text-xs text-slate-500">{rc.instructor || rc.instructor_name || rc.category}</p><p className="mt-3 font-bold text-slate-900">{rc.price === "Free" || Number(rc.price) === 0 ? "Free" : `₹${rc.price}`}</p></div>
+                  </Link>;
+                })}
+              </div> : <div className="border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-slate-500">More course suggestions will appear here soon.</div>}
+            </section>
           </div>
 
-          {/* ───── Right Column – Sticky Purchase Card ───── */}
-          <div className="lg:col-span-4">
-            <div className="sticky top-24">
-              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-                {/* Video Preview */}
-                <div className="relative aspect-video bg-slate-900">
-                  {videoId ? (
-                    <iframe
-                      src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
-                      className="w-full h-full absolute inset-0"
-                      allowFullScreen
-                      title="Course Preview"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-                      <PlayCircle size={48} className="mb-2 opacity-40" />
-                      <p className="text-sm font-medium">
-                        No preview available
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Body */}
-                <div className="p-6">
-                  <div className="mb-5">
-                    <h2 className="text-3xl font-bold text-slate-900">
-                      {price === "Free" || price === "0" || price === 0
-                        ? "Free"
-                        : `₹${price}`}
-                    </h2>
-                    {price !== "Free" && price !== "0" && price !== 0 && (
-                      <p className="text-sm text-slate-500 mt-1">
-                        One-time payment • Lifetime access
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={handleEnroll}
-                    disabled={isEnrolling || isEnrolled}
-                    className={`w-full py-3.5 rounded-xl text-base font-semibold transition-all flex justify-center items-center gap-2 ${
-                      isEnrolled
-                        ? "bg-green-500 text-white cursor-not-allowed"
-                        : "bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white shadow-md shadow-indigo-200"
-                    }`}
-                  >
-                    {isEnrolling && (
-                      <Loader2 size={18} className="animate-spin" />
-                    )}
-                    {isEnrolled
-                      ? "Already Enrolled"
-                      : isEnrolling
-                        ? "Processing..."
-                        : "Enroll Now"}
-                  </button>
-
-                  <p className="text-center text-xs text-slate-500 mt-3">
-                    Full lifetime access • 30-day money-back guarantee
-                  </p>
-
-                  <hr className="my-6 border-slate-100" />
-
-                  <div className="space-y-3.5">
-                    <h3 className="font-semibold text-slate-900 text-sm">
-                      This course includes:
-                    </h3>
-                    {[
-                      {
-                        icon: <MonitorPlay size={17} />,
-                        text: `${duration} on-demand video`,
-                      },
-                      {
-                        icon: <InfinityIcon size={17} />,
-                        text: "Full lifetime access",
-                      },
-                      {
-                        icon: <Globe size={17} />,
-                        text: "Access on mobile and desktop",
-                      },
-                      {
-                        icon: <Award size={17} />,
-                        text: "Certificate of completion",
-                      },
-                    ].map((feat, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 text-slate-600"
-                      >
-                        <div className="text-slate-400">{feat.icon}</div>
-                        <span className="text-sm">{feat.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+          <aside className="order-first lg:order-last lg:col-span-4 lg:-mt-72">
+            <div className="lg:sticky lg:top-6">
+              <PurchaseCard videoId={videoId} thumbnail={bannerImage} title={course.title} price={price} duration={duration} isEnrolled={isEnrolled} isEnrolling={isEnrolling} onEnroll={handleEnroll} totalLessons={totalLessons} materialCount={course.materials?.length || 0} progress={learningData?.progress || 0} actionLabel={pendingPayment?.courseId === course._id ? "Retry payment verification" : undefined} />
             </div>
-          </div>
+          </aside>
+
         </div>
-
-        {/* ───────────────── Students Also Bought ───────────────── */}
-        <section className="mt-12">
-          <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2.5">
-            <ShoppingCart className="text-indigo-600" size={22} />
-            Students Also Bought
-          </h2>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {relatedCourses.map((rc: any) => (
-              <Link
-                key={rc.id}
-                href={`/courses/${rc.id}`}
-                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all"
-              >
-                <div className="relative aspect-video bg-slate-100">
-                  <Image
-                    src={rc.image}
-                    alt={rc.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1.5 line-clamp-2">
-                    {rc.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 mb-2">
-                    {rc.instructor}
-                  </p>
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-amber-600 font-semibold text-sm">
-                      {rc.rating}
-                    </span>
-                    <div className="flex text-amber-400">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <Star key={i} size={11} fill="currentColor" />
-                      ))}
-                    </div>
-                    <span className="text-xs text-slate-400">
-                      ({rc.ratingCount.toLocaleString()})
-                    </span>
-                  </div>
-                  <p className="font-bold text-slate-900">₹{rc.price}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
       </div>
 
-      {/* ───────────────── Enrollment Modal ───────────────── */}
+      {/* Enrollment Modal */}
       {showEnrollModal &&
         createPortal(
           <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
@@ -765,7 +816,7 @@ export default function CourseDetail() {
                   <div
                     className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${
                       modalType === "success"
-                        ? "bg-green-100 text-green-600"
+                        ? "bg-emerald-100 text-emerald-600"
                         : modalType === "error"
                           ? "bg-red-100 text-red-600"
                           : "bg-blue-100 text-blue-600"

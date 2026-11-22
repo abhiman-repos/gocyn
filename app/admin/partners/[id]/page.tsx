@@ -52,7 +52,7 @@ interface PartnerDetails {
 
 export default function PartnerDetailPage() {
   const router = useRouter();
-  const [partner, setPartner] = useState<PartnerDetails | null>(null);
+  const [instructors, setPartner] = useState<PartnerDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updating, setUpdating] = useState(false);
@@ -67,14 +67,14 @@ export default function PartnerDetailPage() {
     setLoading(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("adminToken");
       if (!token) throw new Error("Not authenticated");
 
-      const res = await fetch(`${API}/api/partner/requests/profile/${id}/`, {
+      const res = await fetch(`${API}/api/instructors/requests/profile/${id}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to fetch partner");
+      if (!res.ok) throw new Error(data.message || "Failed to fetch instructors");
       setPartner(data);
     } catch (err: any) {
       setError(err.message);
@@ -84,12 +84,12 @@ export default function PartnerDetailPage() {
   };
 
   const updateStatus = async (newStatus: "approved" | "rejected") => {
-    if (!partner) return;
+    if (!instructors) return;
     setUpdating(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("adminToken");
       const res = await fetch(
-        `${API}/api/partner/requests/${id}/status/`,
+        `${API}/api/instructors/requests/${id}/status/`,
         {
           method: "PATCH",
           headers: {
@@ -101,7 +101,7 @@ export default function PartnerDetailPage() {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Update failed");
-      setPartner({ ...partner, status: newStatus });
+      setPartner({ ...instructors, status: newStatus });
       // Optional: show success toast
     } catch (err: any) {
       alert(err.message);
@@ -113,22 +113,22 @@ export default function PartnerDetailPage() {
   const handleDelete = async () => {
     if (
       !confirm(
-        "Are you sure you want to permanently delete this partner application? This action cannot be undone.",
+        "Are you sure you want to permanently delete this instructors application? This action cannot be undone.",
       )
     ) {
       return;
     }
     setUpdating(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API}/api/partner/requests/${id}/delete/`, {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(`${API}/api/instructors/requests/${id}/delete/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Delete failed");
       alert("Partner deleted successfully");
-      router.push("/admin/partners"); // redirect back to list
+      router.push("/admin/instructors"); // redirect back to list
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -192,13 +192,13 @@ export default function PartnerDetailPage() {
     );
   }
 
-  if (error || !partner) {
+  if (error || !instructors) {
     return (
       <div className="p-8 max-w-4xl mx-auto">
         <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200">
           {error || "Partner not found"}
         </div>
-        <Link href="/admin/partner" className="mt-4 inline-block text-blue-600">
+        <Link href="/admin/instructors" className="mt-4 inline-block text-blue-600">
           ← Back to requests
         </Link>
       </div>
@@ -210,13 +210,13 @@ export default function PartnerDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Link
-          href="/admin/partners"
+          href="/admin/instructors"
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft size={20} /> Back to requests
         </Link>
         <div className="flex gap-3">
-          {partner.status === "pending" && (
+          {instructors.status === "pending" && (
             <>
               <button
                 onClick={() => updateStatus("approved")}
@@ -234,7 +234,7 @@ export default function PartnerDetailPage() {
               </button>
 
               <div className="flex gap-3">
-                {partner.status === "pending" && (
+                {instructors.status === "pending" && (
                   <>
                     <button
                       onClick={handleDelete}
@@ -245,10 +245,10 @@ export default function PartnerDetailPage() {
                     </button>
                   </>
                 )}
-                {partner.status !== "pending" && (
+                {instructors.status !== "pending" && (
                   <>
                     <span className="...">
-                      {partner.status === "approved" ? "Approved" : "Rejected"}
+                      {instructors.status === "approved" ? "Approved" : "Rejected"}
                     </span>
                     <button
                       onClick={handleDelete}
@@ -262,9 +262,9 @@ export default function PartnerDetailPage() {
               </div>
             </>
           )}
-          {partner.status !== "pending" && (
+          {instructors.status !== "pending" && (
             <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium">
-              {partner.status === "approved" ? "✓ Approved" : "✗ Rejected"}
+              {instructors.status === "approved" ? "✓ Approved" : "✗ Rejected"}
             </span>
           )}
         </div>
@@ -273,10 +273,10 @@ export default function PartnerDetailPage() {
       <div className="space-y-6">
         {/* Profile Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex items-center gap-6">
-          {partner.profilePhotoUrl ? (
+          {instructors.profilePhotoUrl ? (
             <img
-              src={partner.profilePhotoUrl}
-              alt={partner.fullName}
+              src={instructors.profilePhotoUrl}
+              alt={instructors.fullName}
               className="w-24 h-24 rounded-full object-cover border-2 border-blue-100"
             />
           ) : (
@@ -286,14 +286,14 @@ export default function PartnerDetailPage() {
           )}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {partner.fullName}
+              {instructors.fullName}
             </h1>
             <p className="text-gray-500">
-              {partner.email} • {partner.phone}
+              {instructors.email} • {instructors.phone}
             </p>
             <p className="text-sm text-gray-500 mt-1">
               Applied on{" "}
-              {new Date(partner.createdAt).toLocaleDateString("en-IN")}
+              {new Date(instructors.createdAt).toLocaleDateString("en-IN")}
             </p>
           </div>
         </div>
@@ -305,17 +305,17 @@ export default function PartnerDetailPage() {
               Professional Info
             </h2>
             <div className="space-y-3">
-              <Info label="Role" value={partner.currentRole} />
-              <Info label="Company" value={partner.company} />
+              <Info label="Role" value={instructors.currentRole} />
+              <Info label="Company" value={instructors.company} />
               <Info
                 label="Experience"
-                value={`${partner.yearsOfExperience} years`}
+                value={`${instructors.yearsOfExperience} years`}
               />
-              <Info label="Expertise" value={partner.expertise?.join(", ")} />
-              <Info label="Skills" value={partner.skills} />
-              <Info label="LinkedIn" value={partner.linkedinProfile} isLink />
-              <Info label="Portfolio" value={partner.portfolioUrl} isLink />
-              <Info label="Bio" value={partner.bio} multiline />
+              <Info label="Expertise" value={instructors.expertise?.join(", ")} />
+              <Info label="Skills" value={instructors.skills} />
+              <Info label="LinkedIn" value={instructors.linkedinProfile} isLink />
+              <Info label="Portfolio" value={instructors.portfolioUrl} isLink />
+              <Info label="Bio" value={instructors.bio} multiline />
             </div>
           </div>
 
@@ -326,27 +326,27 @@ export default function PartnerDetailPage() {
             <div className="space-y-3">
               <Info
                 label="Offering Types"
-                value={partner.offeringType?.join(", ")}
+                value={instructors.offeringType?.join(", ")}
               />
-              <Info label="Teaching Style" value={partner.teachingStyle} />
-              <Info label="Target Audience" value={partner.targetAudience} />
-              <Info label="Price Range" value={partner.priceRange} />
+              <Info label="Teaching Style" value={instructors.teachingStyle} />
+              <Info label="Target Audience" value={instructors.targetAudience} />
+              <Info label="Price Range" value={instructors.priceRange} />
               <Info
                 label="Weekly Availability"
-                value={`${partner.weeklyAvailability} hrs/week`}
+                value={`${instructors.weeklyAvailability} hrs/week`}
               />
               <Info
                 label="Languages"
-                value={partner.preferredLanguages?.join(", ")}
+                value={instructors.preferredLanguages?.join(", ")}
               />
               <Info
                 label="Past Mentoring Exp"
-                value={partner.pastMentoringExp}
+                value={instructors.pastMentoringExp}
                 multiline
               />
               <Info
                 label="Achievements"
-                value={partner.achievements}
+                value={instructors.achievements}
                 multiline
               />
             </div>
@@ -363,41 +363,41 @@ export default function PartnerDetailPage() {
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 Aadhaar Number
               </p>
-              <p className="text-gray-800">{partner.aadhaarNumber || "—"}</p>
+              <p className="text-gray-800">{instructors.aadhaarNumber || "—"}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 PAN Number
               </p>
-              <p className="text-gray-800">{partner.panNumber || "—"}</p>
+              <p className="text-gray-800">{instructors.panNumber || "—"}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 Aadhaar Card
               </p>
-              {renderFileWithPreview(partner.aadhaarFileUrl, "Aadhaar")}
+              {renderFileWithPreview(instructors.aadhaarFileUrl, "Aadhaar")}
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 PAN Card
               </p>
-              {renderFileWithPreview(partner.panFileUrl, "PAN")}
+              {renderFileWithPreview(instructors.panFileUrl, "PAN")}
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider">
                 Resume / CV
               </p>
-              {renderFileWithPreview(partner.resumeFileUrl, "Resume")}
+              {renderFileWithPreview(instructors.resumeFileUrl, "Resume")}
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-gray-100">
             <p className="text-sm text-gray-600">
               <span className="font-semibold">Agreed to Terms:</span>{" "}
-              {partner.agreeToTerms ? "Yes" : "No"} &nbsp;|&nbsp;
+              {instructors.agreeToTerms ? "Yes" : "No"} &nbsp;|&nbsp;
               <span className="font-semibold">
                 Background Check Consent:
               </span>{" "}
-              {partner.agreeToBackground ? "Yes" : "No"}
+              {instructors.agreeToBackground ? "Yes" : "No"}
             </p>
           </div>
         </div>

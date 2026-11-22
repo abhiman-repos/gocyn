@@ -15,22 +15,26 @@ import {
   MdLogout,
   MdAddModerator,
   MdSchool,
+  MdBarChart,
+  MdNotificationsActive,
+  MdCampaign,
 } from "react-icons/md";
 import { HiDocument } from "react-icons/hi";
 import Image from "next/image";
-import AdModal from "@/src/components/MentorPromo";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
   { path: "/admin", label: "Dashboard", icon: MdDashboard },
-  { path: "/admin/course", label: "Courses", icon: MdSchool }, // <-- Added Courses
+  { path: "/admin/course-reviews", label: "Course Review", icon: MdSchool },
+  { path: "/admin/earnings", label: "Earnings", icon: MdBarChart },
+  { path: "/admin/campaigns", label: "Course Campaigns", icon: MdCampaign },
+  { path: "/admin/notifications", label: "Notification Analytics", icon: MdNotificationsActive },
   { path: "/admin/internships", label: "Internships", icon: MdWork },
   { path: "/admin/mentors", label: "Mentors", icon: MdAdminPanelSettings },
   { path: "/admin/accessControl", label: "Controls", icon: MdControlCamera },
-  { path: "/admin/enrollments", label: "Enrollments", icon: MdPerson },
-  { path: "/admin/certificates", label: "Certificates", icon: HiDocument },
-  { path: "/admin/partners", label: "Registration", icon: MdAppRegistration },
+  { path: "/admin/coupons", label: "Coupons", icon: MdSchool },
+  { path: "/admin/instructors", label: "Applications", icon: MdAppRegistration },
   { path: "/admin/ads", label: "Advertisment", icon: MdAddModerator },
 ] as const;
 
@@ -97,6 +101,7 @@ function SidebarContents({
   showLabels,
   isMobile,
   isPinned,
+  isDefaultAdmin,
   pathname,
   onHeaderButtonClick,
   onNavClick,
@@ -105,6 +110,7 @@ function SidebarContents({
   showLabels: boolean;
   isMobile: boolean;
   isPinned: boolean;
+  isDefaultAdmin: boolean;
   pathname: string;
   onHeaderButtonClick: () => void;
   onNavClick: () => void;
@@ -161,7 +167,7 @@ function SidebarContents({
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2 px-2">
         <ul className="space-y-0.5">
-          {NAV_ITEMS.map(({ path, label, icon }) => (
+          {NAV_ITEMS.filter(({ path }) => path !== "/admin/accessControl" || isDefaultAdmin).map(({ path, label, icon }) => (
             <li key={path}>
               <NavItem
                 path={path}
@@ -202,6 +208,7 @@ export function Sidebar() {
   const router = useRouter();
 
   const [pinned, setPinned] = useState(false);
+  const [isDefaultAdmin, setIsDefaultAdmin] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -221,6 +228,7 @@ export function Sidebar() {
   useEffect(() => {
     const saved = localStorage.getItem("sidebarPinned");
     if (saved !== null) setPinned(saved === "true");
+    setIsDefaultAdmin(sessionStorage.getItem("isDefaultAdmin") === "true");
   }, []);
 
   // Lock body scroll when mobile drawer is open
@@ -245,10 +253,15 @@ export function Sidebar() {
   }, []);
 
   const handleLogout = useCallback(() => {
+    const token = localStorage.getItem("adminToken");
+    if (token) {
+      void fetch(process.env.NEXT_PUBLIC_APP_URL + "/api/admin/logout/", {
+        method: "POST", headers: { Authorization: "Bearer " + token },
+      }).catch(() => undefined);
+    }
     sessionStorage.removeItem("isAdmin");
-    sessionStorage.removeItem("token");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("isDefaultAdmin");
+    localStorage.removeItem("adminToken");
     router.replace("/admin/login");
   }, [router]);
 
@@ -292,6 +305,7 @@ export function Sidebar() {
             showLabels={true}
             isMobile={true}
             isPinned={false}
+            isDefaultAdmin={isDefaultAdmin}
             pathname={pathname}
             onHeaderButtonClick={() => setDrawerOpen(false)}
             onNavClick={handleNavClick}
@@ -327,6 +341,7 @@ export function Sidebar() {
           showLabels={pinned}
           isMobile={false}
           isPinned={pinned}
+          isDefaultAdmin={isDefaultAdmin}
           pathname={pathname}
           onHeaderButtonClick={togglePin}
           onNavClick={handleNavClick}

@@ -125,7 +125,7 @@ const faqs: FAQ[] = [
     keywords: ["industry recognized certificate", "certificate better than udemy", "certificate recognized by companies"],
     question: "Are Gocyn certificates recognized by companies and better than Udemy certificates?",
     answer:
-      "Gocyn certificates are jointly issued with partner companies and professionals from Google, Microsoft, Amazon, and other top firms — making them significantly more credible than auto-generated course-completion certificates. Employers can verify your certificate in seconds on our Verify Certificate page. Unlike MOOCs, Gocyn certificates validate hands-on project work, not just video-watching.",
+      "Gocyn certificates are jointly issued with instructors companies and professionals from Google, Microsoft, Amazon, and other top firms — making them significantly more credible than auto-generated course-completion certificates. Employers can verify your certificate in seconds on our Verify Certificate page. Unlike MOOCs, Gocyn certificates validate hands-on project work, not just video-watching.",
   },
   {
     category: "Certificates",
@@ -167,7 +167,7 @@ const faqs: FAQ[] = [
     keywords: ["1 on 1 mentorship online", "mentorship for students free", "career guidance for freshers"],
     question: "What kind of mentorship and career support does Gocyn provide?",
     answer:
-      "Every enrolled student gets access to a dedicated industry mentor — a working professional from a relevant field. You get weekly 1:1 check-ins, project feedback, code/design reviews, and career advice. Our career support team also helps with resume building, LinkedIn optimization, interview preparation, and job referrals through our hiring partner network.",
+      "Every enrolled student gets access to a dedicated industry mentor — a working professional from a relevant field. You get weekly 1:1 check-ins, project feedback, code/design reviews, and career advice. Our career support team also helps with resume building, LinkedIn optimization, interview preparation, and job referrals through our hiring instructors network.",
   },
   {
     category: "Mentorship",
@@ -188,7 +188,7 @@ const faqs: FAQ[] = [
     keywords: ["stipend internship india", "paid internship work from home", "internship stipend amount"],
     question: "Do interns receive a stipend at Gocyn?",
     answer:
-      "Select partner-company internships on Gocyn are paid and come with a stipend ranging from ₹2,000 to ₹10,000/month depending on the role and duration. These are clearly marked as 'Stipend Internship' in the listings. Free certificate internships are unpaid but provide all the learning benefits, certifications, and career support.",
+      "Select instructors-company internships on Gocyn are paid and come with a stipend ranging from ₹2,000 to ₹10,000/month depending on the role and duration. These are clearly marked as 'Stipend Internship' in the listings. Free certificate internships are unpaid but provide all the learning benefits, certifications, and career support.",
   },
 ];
 

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
-import { Ad } from "@/src/types";
+import { Ad } from "@/app/types/types";
 
 const API = process.env.NEXT_PUBLIC_APP_URL;
 
@@ -18,6 +17,8 @@ interface AdForm {
   buttonSize: string;
   buttonBorderRadius: string;
   autoCloseSeconds: number;
+  active: boolean;
+  order: number;
   imageFile?: File | null;
   imagePreview?: string;
 }
@@ -33,6 +34,8 @@ const EMPTY_AD: AdForm = {
   buttonSize: "medium",
   buttonBorderRadius: "8px",
   autoCloseSeconds: 0,
+  active: true,
+  order: 0,
   imageFile: null,
   imagePreview: "",
 };
@@ -243,7 +246,7 @@ const IconDesktop = () => (
 // ─── Skeleton Row ─────────────────────────────────────────────────────────────
 const SkeletonRow = () => (
   <tr className="border-b border-slate-100">
-    {[48, 120, 80, 60, 80].map((w, i) => (
+    {[48, 120, 80, 60, 80, 52].map((w, i) => (
       <td key={i} className="px-5 py-4">
         <div
           className="h-4 rounded-md bg-slate-100 animate-pulse"
@@ -281,7 +284,6 @@ function isMobileUnsafe(w: string): boolean {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function AdminAdsPage() {
-  const { user } = useAuth();
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -296,14 +298,16 @@ export default function AdminAdsPage() {
   );
 
   const fetchAds = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
 
     try {
-      const res = await fetch(`${API}/auth/ads/list/`, {
+      if (!token) throw new Error("Admin sign-in required to manage campaigns.");
+      const res = await fetch(`${API}/api/admin/ads/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to fetch campaigns");
-      setAds(await res.json());
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || data.message || `Could not load campaigns (HTTP ${res.status}).`);
+      setAds(Array.isArray(data) ? data : data.results || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -313,6 +317,8 @@ export default function AdminAdsPage() {
 
   useEffect(() => {
     fetchAds();
+    const refreshTimer = window.setInterval(() => void fetchAds(), 30000);
+    return () => window.clearInterval(refreshTimer);
   }, []);
 
   const handleEdit = (ad: Ad) => {
@@ -328,6 +334,8 @@ export default function AdminAdsPage() {
       buttonSize: ad.buttonSize || "medium",
       buttonBorderRadius: ad.buttonBorderRadius || "8px",
       autoCloseSeconds: ad.autoCloseSeconds || 0,
+      active: ad.active ?? true,
+      order: ad.order ?? 0,
       imageFile: null,
       imagePreview: ad.image || "",
     });
@@ -341,21 +349,42 @@ export default function AdminAdsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     try {
-      await fetch(`${API}/auth/ads/${id}/`, {
+      if (!token) throw new Error("Admin sign-in required to delete campaigns.");
+      const res = await fetch(`${API}/api/admin/ads/${id}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to delete campaign.");
+      }
       setAds((prev) => prev.filter((a) => a._id !== id));
       setDeleteConfirm(null);
     } catch (err: any) {
-      alert("Failed to delete: " + err.message);
+      alert(err.message || "Failed to delete campaign.");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!localStorage.getItem("adminToken")) {
+      alert("Admin sign-in required to save campaigns.");
+      return;
+    }
+    if (!editingAd && !form.imageFile) {
+      alert("Choose a campaign image before creating the ad.");
+      return;
+    }
+    if (form.imageFile && form.imageFile.size > 10 * 1024 * 1024) {
+      alert("Campaign image must be 10 MB or smaller.");
+      return;
+    }
+    if (form.imageFile && !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(form.imageFile.type)) {
+      alert("Upload a JPEG, PNG, WebP, or GIF image.");
+      return;
+    }
     setSubmitting(true);
     try {
       const fd = new FormData();
@@ -369,18 +398,21 @@ export default function AdminAdsPage() {
       fd.append("buttonSize", form.buttonSize);
       fd.append("buttonBorderRadius", form.buttonBorderRadius);
       fd.append("autoCloseSeconds", String(form.autoCloseSeconds || 0));
+      fd.append("active", String(form.active));
+      fd.append("order", String(form.order || 0));
 
       const url = editingAd
-        ? `${API}/auth/ads/${editingAd._id}/`
-        : `${API}/auth/ads/`;
-      const token = localStorage.getItem("token");
+        ? `${API}/api/admin/ads/${editingAd._id}/`
+        : `${API}/api/admin/ads/`;
+      const token = localStorage.getItem("adminToken");
       const res = await fetch(url, {
         method: editingAd ? "PUT" : "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
       });
-      if (!res.ok) throw new Error((await res.text()) || "Save failed");
-      const saved: Ad = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || data.message || `Could not save campaign (HTTP ${res.status}).`);
+      const saved: Ad = data;
       setAds((prev) =>
         editingAd
           ? prev.map((a) => (a._id === saved._id ? saved : a))
@@ -399,6 +431,9 @@ export default function AdminAdsPage() {
   // Resolved safe preview dimensions
   const { cssWidth, cssHeight } = resolvePreviewDims(form.width, form.height);
   const mobileUnsafe = isMobileUnsafe(form.width);
+  const totalAdViews = ads.reduce((sum, ad) => sum + Number(ad.views || 0), 0);
+  const totalAdClicks = ads.reduce((sum, ad) => sum + Number(ad.clicks || 0), 0);
+  const adClickRate = totalAdViews ? (totalAdClicks * 100 / totalAdViews).toFixed(2) : "0.00";
 
   // In mobile preview mode, cap width to 390px
   const effectiveWidth =
@@ -483,11 +518,14 @@ export default function AdminAdsPage() {
 
           {/* ── Stats ── */}
           <div
-            className="fade-up grid grid-cols-3 gap-4 mb-6"
+            className="fade-up grid grid-cols-2 gap-4 mb-6 lg:grid-cols-5"
             style={{ animationDelay: ".05s" }}
           >
             {[
               { label: "Total Campaigns", value: ads.length },
+              { label: "Impressions", value: totalAdViews.toLocaleString("en-IN") },
+              { label: "Clicks", value: totalAdClicks.toLocaleString("en-IN") },
+              { label: "Click-through rate", value: `${adClickRate}%` },
               {
                 label: "With Auto-close",
                 value: ads.filter((a) => (a.autoCloseSeconds ?? 0) > 0).length,
@@ -522,11 +560,13 @@ export default function AdminAdsPage() {
                     "Dimensions",
                     "Call to Action",
                     "Auto-close",
+                    "Status / order",
+                    "Performance",
                     "Actions",
                   ].map((h, i) => (
                     <th
                       key={h}
-                      className={`px-5 py-3.5 sec ${i === 4 ? "text-right" : "text-left"}`}
+                      className={`px-5 py-3.5 sec ${i === 5 ? "text-right" : "text-left"}`}
                     >
                       {h}
                     </th>
@@ -537,7 +577,7 @@ export default function AdminAdsPage() {
                 {loading && [1, 2, 3].map((i) => <SkeletonRow key={i} />)}
                 {!loading && ads.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-20 text-center">
+                    <td colSpan={7} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center gap-3 text-slate-400">
                         <span className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
                           <IconImage />
@@ -566,6 +606,7 @@ export default function AdminAdsPage() {
                             fill
                             sizes="56px"
                             className="object-cover"
+                            unoptimized
                           />
                         </div>
                       ) : (
@@ -618,6 +659,8 @@ export default function AdminAdsPage() {
                         </span>
                       )}
                     </td>
+                    <td className="px-5 py-4"><div className="flex flex-col items-start gap-1"><span className={`tag ${ad.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{ad.active ? "Active" : "Inactive"}</span><span className="text-xs text-slate-400">Order {ad.order ?? 0}</span></div></td>
+                    <td className="px-5 py-4"><span className="block text-xs font-semibold text-slate-700">{Number(ad.views || 0).toLocaleString("en-IN")} views</span><span className="block text-xs text-slate-500">{Number(ad.clicks || 0).toLocaleString("en-IN")} clicks · {Number(ad.views) ? (Number(ad.clicks || 0) * 100 / Number(ad.views)).toFixed(2) : "0.00"}% CTR</span></td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
@@ -825,7 +868,7 @@ export default function AdminAdsPage() {
                 <label className="block cursor-pointer group">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
                     className="sr-only"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -845,6 +888,7 @@ export default function AdminAdsPage() {
                         fill
                         sizes="(max-width:640px) 100vw, 560px"
                         className="object-cover"
+                        unoptimized
                       />
                       <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <span className="bg-white text-slate-700 text-xs font-medium px-3 py-1.5 rounded-lg shadow">
@@ -1001,11 +1045,12 @@ export default function AdminAdsPage() {
                   <input
                     type="number"
                     min="0"
+                    max="3600"
                     value={form.autoCloseSeconds || 0}
                     onChange={(e) =>
                       setForm({
                         ...form,
-                        autoCloseSeconds: parseInt(e.target.value) || 0,
+                        autoCloseSeconds: Math.min(3600, parseInt(e.target.value) || 0),
                       })
                     }
                     className="inp max-w-[120px]"
@@ -1016,6 +1061,23 @@ export default function AdminAdsPage() {
                       : "Disabled — stays open until user closes it"}
                   </span>
                 </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex items-center gap-3 border border-slate-200 p-4 text-sm font-medium text-slate-700">
+                  <input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} />
+                  Campaign is active and visible to users
+                </label>
+                <label className="block text-xs font-medium text-slate-500">Display order (lower numbers first)
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.order}
+                    onChange={e => setForm({ ...form, order: Math.max(0, parseInt(e.target.value) || 0) })}
+                    className="inp mt-1"
+                  />
+                </label>
               </div>
 
               {/* Footer */}
@@ -1156,6 +1218,7 @@ export default function AdminAdsPage() {
                     sizes="(max-width:640px) 95vw, 800px"
                     className="object-cover"
                     priority
+                    unoptimized
                   />
                 ) : (
                   <div className="w-full h-full bg-slate-100 flex flex-col items-center justify-center gap-2 text-slate-300">

@@ -21,8 +21,9 @@ import {
 } from "react-icons/fi";
 import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Fuse from "fuse.js";
+import NotificationBell from "./notifications/NotificationBell";
 
 type Suggestion = {
   label: string;
@@ -72,6 +73,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [searchMode, setSearchMode] = useState<"semantic" | "keyword">("semantic");
   const [results, setResults] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -82,6 +84,7 @@ export default function Navbar() {
 
   const pathname = usePathname() || "";
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // ─── Refs ──────────────────────────────────────────────────────────────
   // Home page (desktop only)
@@ -127,10 +130,10 @@ export default function Navbar() {
   // ─── Sync search with URL query on /search ────────────────────────────
   useEffect(() => {
     if (isSearchPage) {
-      const q = new URLSearchParams(window.location.search).get("q");
-      if (q) setSearch(q);
+      setSearch(searchParams.get("q") || "");
+      setSearchMode(searchParams.get("mode") === "keyword" ? "keyword" : "semantic");
     }
-  }, [isSearchPage]);
+  }, [isSearchPage, searchParams]);
 
   // ─── Auto-focus on /search (visible input only) ───────────────────────
   useEffect(() => {
@@ -240,9 +243,9 @@ export default function Navbar() {
     }
 
     if (isSearchPage) {
-      router.push(`/search?q=${encodeURIComponent(query)}`);
+      router.push(`/search?q=${encodeURIComponent(query)}&mode=${searchMode}`);
     } else {
-      router.push(`/internships?search=${encodeURIComponent(query)}`);
+      router.push(`/search?q=${encodeURIComponent(query)}&mode=${searchMode}`);
     }
     closeSearchState();
   };
@@ -253,9 +256,9 @@ export default function Navbar() {
     } else {
       const query = suggestion.label;
       if (isSearchPage) {
-        router.push(`/search?q=${encodeURIComponent(query)}`);
+        router.push(`/search?q=${encodeURIComponent(query)}&mode=${searchMode}`);
       } else {
-        router.push(`/internships?search=${encodeURIComponent(query)}`);
+        router.push(`/search?q=${encodeURIComponent(query)}&mode=${searchMode}`);
       }
     }
     setSearch(suggestion.label);
@@ -297,6 +300,7 @@ export default function Navbar() {
     setResults([]);
     setShowSuggestions(false);
     setHighlightedIndex(-1);
+    if (isSearchPage) router.push(`/search?mode=${searchMode}`);
     getActiveSearchInputRef().current?.focus();
   };
 
@@ -314,8 +318,8 @@ export default function Navbar() {
     suggestionsRefProp = suggestionsRef
   ) => {
     const inputClass = isYouTubeStyle
-      ? "w-full pl-11 max-w-6xl pr-10 py-2.5 bg-gray-100 border border-transparent focus:bg-white focus:border-gray-300 focus:ring-0 outline-none text-base pl-12 transition-all"
-      : "w-half pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm transition-all duration-200";
+      ? "w-full pl-11 max-w-6xl pr-36 py-2.5 bg-gray-100 border border-transparent focus:bg-white focus:border-gray-300 focus:ring-0 outline-none text-base pl-12 transition-all"
+      : "w-half pl-10 pr-36 py-2.5 bg-gray-50 border border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm transition-all duration-200";
 
     return (
       <form
@@ -349,16 +353,14 @@ export default function Navbar() {
             autoComplete="off"
           />
 
-          {search && (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-              aria-label="Clear search"
-            >
-              <FiXCircle size={18} />
-            </button>
-          )}
+          {(isHomePage || isSearchPage) && <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
+            {search && <button type="button" onClick={clearSearch} className="p-1 text-gray-400 transition hover:text-gray-600" aria-label="Clear search"><FiXCircle size={17} /></button>}
+            <label className="sr-only" htmlFor="header-search-mode">Search mode</label>
+            <select id="header-search-mode" value={searchMode} onChange={event => setSearchMode(event.target.value as "semantic" | "keyword")} className="max-w-28 cursor-pointer border-0 bg-transparent py-1 pl-1 pr-5 text-[11px] font-medium text-gray-600 outline-none focus:ring-0" aria-label="Search mode">
+              <option value="semantic">Meaning-based</option>
+              <option value="keyword">Keyword</option>
+            </select>
+          </div>}
         </div>
 
         {/* Suggestions dropdown */}
@@ -433,6 +435,7 @@ export default function Navbar() {
     "/auth/forgot-password",
     "/auth/reset-password",
     "/internships/[id]",
+    "/onboarding"
   ];
 
   const shouldHide =
@@ -440,7 +443,7 @@ export default function Navbar() {
     pathname.startsWith("/course/") ||
     pathname.startsWith("/mentors/") ||
     pathname.startsWith("/profile/") ||
-    pathname.startsWith("/partner/") ||
+    pathname.startsWith("/instructors/") ||
     pathname.startsWith("/admin/");
 
   if (!isMounted || shouldHide) return null;
@@ -481,6 +484,7 @@ export default function Navbar() {
                   <FiArrowLeft size={22} />
                 </button>
 
+
                 <div className="flex-1 max-w-2xl">
                   {renderSearchInput(true, desktopSearchInputRef, desktopSuggestionsRef)}
                 </div>
@@ -488,11 +492,13 @@ export default function Navbar() {
             ) : (
               // Normal home layout
               <>
+
                 <div className="flex-1 max-w-2xl">
-                  {isHomePage && renderSearchInput(false)}
+                  {renderSearchInput(false)}
                 </div>
 
                 <div className="flex items-center gap-6 shrink-0">
+
                   <Link
                     href="/"
                     className="text-sm font-medium text-gray-700 hover:text-blue-600"
@@ -511,6 +517,9 @@ export default function Navbar() {
                   >
                     Mentors
                   </Link>
+                  <Link href="/verify" className="text-sm font-medium text-gray-700 hover:text-blue-600">
+                    Verify certificate
+                  </Link>
 
                   {user ? (
                     <>
@@ -526,6 +535,7 @@ export default function Navbar() {
                       >
                         Setting
                       </Link>
+                      <NotificationBell />
                     </>
                   ) : (
                     <>
@@ -577,13 +587,13 @@ export default function Navbar() {
               // Default mobile: search icon + hamburger
               <div className="ml-auto flex items-center gap-1">
                 <button
-                  onClick={() => router.push("/search")}
+                  onClick={() => router. push("/search")}
                   aria-label="Search"
                   className="p-2 text-gray-700 hover:text-blue-600 transition"
                 >
                   <FiSearch size={22} />
                 </button>
-
+                {user && <NotificationBell />}
                 <button
                   onClick={() => setIsOpen(!isOpen)}
                   aria-label={isOpen ? "Close Menu" : "Open Menu"}
@@ -632,6 +642,10 @@ export default function Navbar() {
                 >
                   <FiUsers size={20} className="text-gray-500" />
                   Mentors
+                </Link>
+                <Link href="/verify" className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-200 font-medium transition-all" onClick={closeMenu}>
+                  <FiBook size={20} className="text-gray-500" />
+                  Verify certificate
                 </Link>
 
                 {user ? (

@@ -11,8 +11,9 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Loader2, // ← React icon spinner (Lucide)
+  Loader2,
 } from "lucide-react";
+
 import { useAuth } from "@/src/context/AuthContext";
 import GoogleAuthButton from "@/src/components/libs/google-auth";
 
@@ -22,266 +23,308 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { setUser } = useAuth();
   const router = useRouter();
 
-  const isValidEmail = (email: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  const isValidEmail = (value: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
+
+    if (loading) return;
+
     setError("");
-    setSuccess("");
 
-    if (!email.trim()) {
-      setError("Email address is required");
-      setLoading(false);
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setError("Email address is required.");
       return;
     }
 
-    if (!isValidEmail(email)) {
-      setError("Please enter a valid email address");
-      setLoading(false);
+    if (!isValidEmail(normalizedEmail)) {
+      setError("Please enter a valid email address.");
       return;
     }
 
-    if (!password.trim()) {
-      setError("Password is required");
-      setLoading(false);
+    if (!password) {
+      setError("Password is required.");
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      setLoading(false);
+    if (!API) {
+      setError("Application API URL is not configured.");
       return;
     }
+
+    setLoading(true);
 
     try {
-      const res = await fetch(`${API}/api/users/login/`, {
+      // 1. Authenticate user
+      const loginResponse = await fetch(`${API}/api/auth/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email,
+          email: normalizedEmail,
           password,
         }),
       });
 
-      const data = await res.json();
+      const loginData = await loginResponse.json().catch(() => ({}));
 
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed");
+      if (!loginResponse.ok) {
+        const message =
+          loginData.detail ||
+          loginData.error ||
+          loginData.email?.[0] ||
+          loginData.password?.[0] ||
+          loginData.non_field_errors?.[0] ||
+          "Invalid email or password.";
+
+        throw new Error(
+          typeof message === "string"
+            ? message
+            : "Please check your credentials."
+        );
       }
 
-      // 🔥 Save token
-      localStorage.setItem("token", data.token);
+      // 2. Extract JWT tokens
+      const accessToken =
+        loginData.access ?? loginData.token ?? loginData.access_token;
 
-      // 🔥 IMPORTANT: fetch user from backend
-      const profileRes = await fetch(`${API}/api/users/profile/`, {
+      const refreshToken = loginData.refresh;
+
+      if (!accessToken) {
+        throw new Error("Access token was not returned by the server.");
+      }
+
+      // 3. Save authentication tokens
+      localStorage.setItem("token", accessToken);
+
+      if (refreshToken) {
+        localStorage.setItem("refresh", refreshToken);
+      }
+
+      // 4. Fetch the latest authenticated user/profile
+      const profileResponse = await fetch(`${API}/api/auth/me/`, {
+        method: "GET",
         headers: {
-          Authorization: `Bearer ${data.token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
-      const userData = await profileRes.json();
+      const profileData = await profileResponse.json().catch(() => ({}));
 
-      if (!profileRes.ok) {
-        throw new Error("Failed to fetch user");
+      if (!profileResponse.ok) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refresh");
+        throw new Error(
+          profileData.detail || "Unable to fetch your account profile."
+        );
       }
 
-      // 🔥 Save user
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
+      const account = profileData.user ?? profileData;
+      
 
-      setSuccess("Login successful");
+      // 5. Build user object that matches the User type expected by AuthContext
+      //    (User requires `id`)
+      const authenticatedUser = {
+        id: profileData.user?.user_id ?? profileData.user?.id, // required by User type
+        user_id: profileData.user?.user_id ?? profileData.user?.id,
+        full_name: profileData.user?.full_name ?? "",
+        email: profileData.user?.email ?? "",
+        profile: profileData.profile ?? {},
+        profile_completed: profileData.profile_completed ?? null,
+        is_profile_completed: profileData.is_profile_completed ?? false,
+      };
 
-      setTimeout(() => {
-        router.push("/");
-      }, 800);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      localStorage.setItem("user", JSON.stringify(authenticatedUser));
+      setUser(authenticatedUser);
+
+      // 6. Redirect based on profile completion
+      if (authenticatedUser.profile_completed === null) {
+        router.replace("/onboarding");
+      } else {
+        const next = new URLSearchParams(window.location.search).get("next");
+        router.replace(next === "/notifications" ? next : "/");
+      }
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-white transition-colors">
-      <div className="absolute bg-white opacity-30 pointer-events-none " />
+  const inputClass =
+    "w-full bg-transparent border-0 border-b border-slate-300 px-0 py-3.5 text-slate-900 placeholder:text-slate-400 outline-none rounded-none transition-colors focus:border-blue-600 focus:ring-0 dark:border-zinc-700 dark:text-white dark:focus:border-blue-400";
 
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-white px-6 py-12 dark:bg-zinc-950">
       <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="max-w-md w-full bg-white    p-8 md:p-12 backdrop-blur-xl"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className="w-full max-w-[390px]"
       >
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
-            Welcome back
-          </h1>
-          <p className="mt-2 text-slate-500 dark:text-slate-400">
-            Sign in to your Gocyn account
+        <header className="mb-12">
+          <p className="mb-5 text-sm font-semibold tracking-[0.2em] text-blue-600 dark:text-blue-400">
+            GOCYN
           </p>
-        </div>
+
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+            Welcome back.
+          </h1>
+
+          <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            Sign in to continue your learning journey.
+          </p>
+        </header>
 
         {/* Error */}
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 flex items-center gap-3 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-100 dark:border-red-900 p-4 text-sm text-red-700 dark:text-red-400"
+            className="mb-7 flex items-start gap-2 border-l-2 border-red-500 py-2 pl-3 text-sm text-red-600 dark:text-red-400"
+            role="alert"
           >
-            <AlertCircle size={20} className="shrink-0" />
-            <span className="font-medium">{error}</span>
+            <AlertCircle size={17} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
           </motion.div>
         )}
 
-        {/* Success */}
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 flex items-center gap-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900 p-4 text-sm text-emerald-700 dark:text-emerald-400"
-          >
-            <div className="h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center">
-              <span className="text-white text-[10px] leading-none">✓</span>
-            </div>
-            <span className="font-medium">{success}</span>
-          </motion.div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+        {/* Login form */}
+        <form onSubmit={handleSubmit} className="space-y-9" noValidate>
           {/* Email */}
-          <div className="space-y-2">
+          <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Email address
             </label>
+
             <div className="relative">
               <Mail
-                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-                size={20}
+                size={18}
+                className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-400"
               />
+
               <input
                 id="email"
                 type="email"
+                autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-12 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all outline-none"
-                placeholder="you@company.com"
+                placeholder="you@example.com"
+                className={`${inputClass} pl-8`}
               />
             </div>
           </div>
 
           {/* Password */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
+          <div>
+            <div className="mb-2 flex items-center justify-between">
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                className="text-sm font-medium text-slate-700 dark:text-slate-300"
               >
                 Password
               </label>
+
               <Link
                 href="/auth/forgot-password"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-800 dark:text-blue-400"
               >
                 Forgot password?
               </Link>
             </div>
+
             <div className="relative">
               <Lock
-                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-                size={20}
+                size={18}
+                className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-400"
               />
+
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-12 py-4 pr-12 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all outline-none"
-                placeholder="••••••••"
+                placeholder="Enter your password"
+                className={`${inputClass} pl-8 pr-10`}
               />
+
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-blue-600"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {/* Remember me */}
-          <div className="flex items-center">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-800"
-              />
-              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                Remember me
-              </span>
-            </label>
-          </div>
-
-          {/* Login Button with React Icon Spinner */}
+          {/* Submit */}
           <motion.button
-            whileTap={{ scale: 0.97 }}
+            whileTap={{ scale: 0.985 }}
             type="submit"
             disabled={loading}
-            className="group relative w-full flex items-center justify-center gap-2 bg-blue-400 px-8 py-2 text-lg font-semibold text-white shadow-lg shadow-blue-500/30 transition-all hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
+            className="group flex w-full items-center justify-between bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin h-5 w-5 text-white" />{" "}
-                {/* ← Clean React icon spinner */}
-                <span>Signing in...</span>
-              </>
-            ) : (
-              <>
-                Sign in
-                <ChevronRight
-                  size={22}
-                  className="transition-transform group-hover:translate-x-0.5"
-                />
-              </>
+            <span className="flex items-center gap-2">
+              {loading && <Loader2 size={17} className="animate-spin" />}
+              {loading ? "Signing in..." : "Sign in"}
+            </span>
+
+            {!loading && (
+              <ChevronRight
+                size={19}
+                className="transition-transform group-hover:translate-x-1"
+              />
             )}
           </motion.button>
         </form>
-        <div className="mt-9">
-          <GoogleAuthButton />
+
+        {/* Divider */}
+        <div className="my-8 flex items-center gap-4">
+          <div className="h-px flex-1 bg-slate-200 dark:bg-zinc-800" />
+          <span className="text-xs text-slate-400">OR CONTINUE WITH</span>
+          <div className="h-px flex-1 bg-slate-200 dark:bg-zinc-800" />
         </div>
+
+        {/* Google authentication */}
+        <GoogleAuthButton />
+
         {/* Footer */}
-        <div className="mt-10 text-center text-sm">
+        <footer className="mt-12 text-center text-sm">
           <span className="text-slate-500 dark:text-slate-400">
-            Don&apos;t have an account?{" "}
+            Don't have an account?{" "}
           </span>
+
           <Link
             href="/register"
-            className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+            className="font-semibold text-blue-600 transition-colors hover:text-blue-800 dark:text-blue-400"
           >
-            Create a free account
+            Create an account
           </Link>
-        </div>
+        </footer>
       </motion.div>
-    </div>
+    </main>
   );
 }

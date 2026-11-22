@@ -36,13 +36,20 @@ export default function InternshipsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [analyticsError, setAnalyticsError] = useState("");
 
   const fetchInternships = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API}/upload/internships/list/`);
-      const data = await res.json();
+      const [res, analyticsRes] = await Promise.all([
+        fetch(`${API}/upload/internships/list/`),
+        fetch(`${API}/auth/analytics/internships/`, { headers: { Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}` }, cache: "no-store" }).catch(() => null),
+      ]);
+      const data = await res.json().catch(() => []);
       setInternships(Array.isArray(data) ? data : []);
+      if (analyticsRes?.ok) { setAnalytics(await analyticsRes.json().catch(() => null)); setAnalyticsError(""); }
+      else setAnalyticsError("Internship analytics could not be loaded. Check that your admin session is active.");
     } catch (err) {
       console.error(err);
       toast.error("Failed to load internships");
@@ -73,6 +80,8 @@ export default function InternshipsPage() {
     }
   };
   const selectedForDelete = internships.find(i => i._id === deleteId);
+  const monthlyMetrics = (analytics?.monthly || []).slice(-12);
+  const monthlyPeak = Math.max(1, ...monthlyMetrics.map((row: any) => Number(row.enrollments || 0)));
 
   return (
     <div className="min-h-screen bg-gray-50/10 pb-10">
@@ -95,6 +104,18 @@ export default function InternshipsPage() {
           </button>
         </Link>
       </div>
+
+      {analyticsError && <p role="status" className="mx-4 border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 sm:mx-6">{analyticsError}</p>}
+      {analytics && <section className="space-y-4 px-4 sm:px-6">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[["All internships", analytics.overall?.internships], ["Active internships", analytics.overall?.active_internships], ["Student enrollments", analytics.overall?.enrollments], ["Average enrollments", analytics.overall?.average_enrollments]].map(([label, value]) => <article key={String(label)} className="border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p><p className="mt-2 text-2xl font-bold text-slate-950">{value ?? 0}</p></article>)}
+        </div>
+        <div className="border border-slate-200 bg-white p-4 sm:p-5"><div><h2 className="font-bold text-slate-950">Monthly enrollments</h2><p className="mt-1 text-sm text-slate-500">Student enrollment activity across internship listings.</p></div><div className="mt-5 flex h-44 items-end gap-2 border-b border-l border-slate-200 px-2">{monthlyMetrics.map((row: any) => <div key={row.month} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2"><span className="text-[10px] font-semibold text-slate-600">{row.enrollments}</span><div title={`${row.month}: ${row.enrollments} enrollments`} className="w-full max-w-10 bg-indigo-600" style={{ height: `${Math.max(4, Number(row.enrollments || 0) / monthlyPeak * 100)}%` }} /><span className="pb-1 text-[9px] text-slate-500">{new Date(`${row.month}-01T00:00:00`).toLocaleDateString("en-IN", { month: "short", year: "2-digit" })}</span></div>)}{!monthlyMetrics.length && <p className="mb-4 w-full text-center text-sm text-slate-500">Monthly activity will appear when students enroll.</p>}</div></div>
+        <div className="border border-slate-200 bg-white">
+          <div className="border-b border-slate-200 p-4"><h2 className="font-bold text-slate-950">Enrollment analytics by internship</h2><p className="mt-1 text-sm text-slate-500">Student enrollments recorded for each listing.</p></div>
+          <div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-600"><tr>{["Internship", "Company", "Status", "Enrollments"].map(title => <th key={title} className="px-4 py-3">{title}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{(analytics.by_internship || []).map((row: any) => <tr key={row.internship_id}><td className="px-4 py-3 font-semibold">{row.title}</td><td className="px-4 py-3">{row.company}</td><td className="px-4 py-3 capitalize">{row.status}</td><td className="px-4 py-3 font-semibold">{Number(row.enrollments || 0).toLocaleString("en-IN")}</td></tr>)}{!analytics.by_internship?.length && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500">No internship activity yet.</td></tr>}</tbody></table></div>
+        </div>
+      </section>}
 
       {/* GRID – full responsive with tighter gaps on mobile */}
       <div className="px-4 sm:px-6 pb-10 max-w-[1700px] mx-auto">

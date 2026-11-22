@@ -14,9 +14,9 @@ export function middleware(request: NextRequest) {
   }
 
   // Mentor subdomain
-  if (host === "mentor.gocyn.com" || host === "www.mentor.gocyn.com") {
-    if (!url.pathname.startsWith("/partner")) {
-      url.pathname = "/partner/login";
+  if (host === "mentor.gocyn.com" || host === "http://localhost:3000/instructors/login") {
+    if (!url.pathname.startsWith("/instructors")) {
+      url.pathname = "/instructors/login";
       return NextResponse.redirect(url);
     }
   }
