@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 const TERMS_VERSION = "1.0";
 const PRIVACY_POLICY_VERSION = "1.0";

@@ -14,7 +14,7 @@ import confetti from "canvas-confetti";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-const API = process.env.APP_URL;
+import { LEGACY_API_BASE } from "@/src/lib/apiBases";
 
 export default function CertificatePage() {
   const { id } = useParams();
@@ -33,7 +33,7 @@ export default function CertificatePage() {
     const fetchCertificate = async () => {
       try {
         const res = await fetch(
-          `${API}/upload/verify-certificate?certificate_id=${id}`
+          `${LEGACY_API_BASE}/upload/verify-certificate?certificate_id=${encodeURIComponent(String(id))}`
         );
         const data = await res.json();
 

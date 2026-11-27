@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 type Lesson = { lesson_id: string; title: string; completed: boolean; completed_at: string | null };
 type Section = { section_id: string; title: string; lessons: Lesson[] };
 type Enrollment = {

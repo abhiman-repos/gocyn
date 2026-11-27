@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 export default function MentorForgotPasswordPage() {
   const [email, setEmail] = useState("");

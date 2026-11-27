@@ -29,7 +29,8 @@ import {
 } from "@/src/components/ui/alert-dialog";
 import { toast } from "sonner";
 
-const API = process.env.APP_URL;
+import { APP_API_BASE, LEGACY_API_BASE } from "@/src/lib/apiBases";
+const API = APP_API_BASE;
 
 export default function InternshipsPage() {
   const [internships, setInternships] = useState<any[]>([]);
@@ -43,8 +44,8 @@ export default function InternshipsPage() {
     try {
       setLoading(true);
       const [res, analyticsRes] = await Promise.all([
-        fetch(`${API}/upload/internships/list/`),
-        fetch(`${API}/auth/analytics/internships/`, { headers: { Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}` }, cache: "no-store" }).catch(() => null),
+        fetch(`${LEGACY_API_BASE}/upload/internships/list/`),
+        fetch(`${LEGACY_API_BASE}/auth/analytics/internships/`, { headers: { Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}` }, cache: "no-store" }).catch(() => null),
       ]);
       const data = await res.json().catch(() => []);
       setInternships(Array.isArray(data) ? data : []);
@@ -65,7 +66,7 @@ export default function InternshipsPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      const res = await fetch(`${API}/upload/delete_internship/${deleteId}/`, {
+      const res = await fetch(`${LEGACY_API_BASE}/upload/delete_internship/${deleteId}/`, {
         method: "DELETE",
       });
       if (res.ok) {

@@ -23,7 +23,7 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
 }
 
-const API = process.env.APP_URL?.replace(/\/+$/, "");
+const API = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "");
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -92,7 +92,7 @@ export function AuthProvider({
   // Fetch authenticated user from Django
   const fetchUser = useCallback(async () => {
     if (!API) {
-      console.error("APP_URL is not configured.");
+      console.error("NEXT_PUBLIC_APP_URL is not configured.");
       setLoading(false);
       return;
     }

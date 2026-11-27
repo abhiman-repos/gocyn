@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 type CourseRow = {
   course_id: string;
   title: string;
@@ -93,6 +93,7 @@ const formatTimestamp = (seconds: number) => {
 };
 
 export default function CourseReviewPage() {
+  const [requestedCourseId, setRequestedCourseId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("in_review");
   const [courses, setCourses] = useState<CourseRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +103,14 @@ export default function CourseReviewPage() {
   const [manualChecks, setManualChecks] = useState({ visual: false, audio: false, harmful: false, rights: false });
   const manualChecksConfirmed = Object.values(manualChecks).every(Boolean);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const autoOpenedCourseId = useRef<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    if (status) setStatusFilter(status);
+    setRequestedCourseId(params.get("course_id"));
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -123,7 +132,7 @@ export default function CourseReviewPage() {
     void load();
   }, [load]);
 
-  const openCourse = async (row: CourseRow) => {
+  const openCourse = useCallback(async (row: CourseRow) => {
     try {
       const data = await jsonResponse(
         await fetch(`${API}/api/admin/courses/${row.course_id}/`, {
@@ -137,7 +146,19 @@ export default function CourseReviewPage() {
     } catch (error: any) {
       toast.error(error.message || "Could not load course details.");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!requestedCourseId) {
+      autoOpenedCourseId.current = null;
+      return;
+    }
+    if (autoOpenedCourseId.current === requestedCourseId) return;
+    const row = courses.find((course) => course.course_id === requestedCourseId);
+    if (!row) return;
+    autoOpenedCourseId.current = requestedCourseId;
+    void openCourse(row);
+  }, [courses, openCourse, requestedCourseId]);
 
   const review = async (action: "approve" | "reject" | "suspend") => {
     if (!selected) return;

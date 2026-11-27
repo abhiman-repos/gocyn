@@ -46,13 +46,13 @@ export default function AboutClient() {
             >
               <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
                 <FiZap size={16} />
-                India’s Fastest‑Growing Learning Ecosystem
+                Learn, build, and grow with Gocyn
               </span>
               <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight">
                 We are <span className="text-blue-600">Gocyn</span>
               </h1>
               <p className="text-xl text-gray-600 max-w-xl">
-                The only platform that unifies <strong>online courses</strong>,{" "}
+                One place for <strong>online courses</strong>,{" "}
                 <strong>real‑world internships</strong>, and{" "}
                 <strong>industry certifications</strong> — purpose‑built to make
                 you job‑ready, not just exam‑ready.

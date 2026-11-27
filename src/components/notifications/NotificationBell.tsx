@@ -10,17 +10,26 @@ const NotificationBell: React.FC = () => {
     notifications,
     unreadCount,
     loading,
+    error,
     hasMore,
     loadMore,
     markAsRead,
+    removeNotification,
+    reportNotification,
     trackClick,
     markAllAsRead,
     clearNotifications,
+    refresh,
   } = useNotifications();
+
+  const toggle = () => {
+    setIsOpen((open) => !open);
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (event.target instanceof Element && event.target.closest('[data-notification-portal="true"]')) return;
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
@@ -32,7 +41,7 @@ const NotificationBell: React.FC = () => {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggle}
         className="relative p-2 rounded-half hover:bg-gray-100 focus:outline-none"
         aria-label="Notifications"
       >
@@ -57,9 +66,13 @@ const NotificationBell: React.FC = () => {
           notifications={notifications}
           unreadCount={unreadCount}
           loading={loading}
+          error={error}
+          onRefresh={refresh}
           hasMore={hasMore}
           onLoadMore={loadMore}
           onMarkAsRead={markAsRead}
+          onRemove={removeNotification}
+          onReport={reportNotification}
           onClickNotification={trackClick}
           onMarkAllAsRead={markAllAsRead}
           onClose={() => setIsOpen(false)}

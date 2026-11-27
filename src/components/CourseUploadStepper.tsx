@@ -6,7 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 const VIDEO_TYPES = new Set([
   "video/mp4",
   "video/quicktime",

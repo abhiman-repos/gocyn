@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 const API_URL = (
-  process.env.APP_URL || "http://localhost:8000"
+  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000"
 ).replace(/\/$/, "");
 
 function getErrorMessage(data: any, status: number): string {

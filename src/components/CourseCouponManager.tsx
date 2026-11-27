@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 
 type Coupon = { coupon_id: string; code: string; discount_type: "percent" | "fixed"; discount_value: string; course_id: string | null; active: boolean; expires_at: string | null; max_redemptions: number | null; redemption_count: number };
 type Course = { course_id: string; title: string };
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 export default function CourseCouponManager({ audience }: { audience: "admin" | "instructor" }) {
   const [rows, setRows] = useState<Coupon[]>([]); const [courses, setCourses] = useState<Course[]>([]); const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(false); const [error, setError] = useState("");

@@ -6,7 +6,7 @@ import AddInternship from "../../add/page";
 import { motion } from "motion/react";
 
 
-const API = process.env.APP_URL;
+import { LEGACY_API_BASE } from "@/src/lib/apiBases";
 
 export default function EditInternshipPage() {
   const { id } = useParams();
@@ -26,7 +26,7 @@ export default function EditInternshipPage() {
     const fetchInternship = async () => {
       try {
         const res = await fetch(
-          `${API}/upload/edit/${internshipId}/`,
+          `${LEGACY_API_BASE}/upload/edit/${internshipId}/`,
         );
 
         if (!res.ok) throw new Error("Failed to fetch internship");

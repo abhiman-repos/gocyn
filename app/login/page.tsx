@@ -17,7 +17,7 @@ import {
 import { useAuth } from "@/src/context/AuthContext";
 import GoogleAuthButton from "@/src/components/libs/google-auth";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -178,9 +178,6 @@ export default function Login() {
       >
         {/* Header */}
         <header className="mb-12">
-          <p className="mb-5 text-sm font-semibold tracking-[0.2em] text-blue-600 dark:text-blue-400">
-            GOCYN
-          </p>
 
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
             Welcome back.

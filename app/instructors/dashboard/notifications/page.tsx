@@ -14,6 +14,8 @@ export default function InstructorNotificationsPage() {
     hasMore,
     loadMore,
     markAsRead,
+    removeNotification,
+    reportNotification,
     markAllAsRead,
     trackClick,
     refresh,
@@ -100,7 +102,7 @@ export default function InstructorNotificationsPage() {
             <p className="mt-1 max-w-sm text-sm text-gray-500">New updates for your instructor account will appear here.</p>
           </div>
         ) : (
-          <NotificationList notifications={notifications} loading={loading} hasMore={hasMore} onLoadMore={loadMore} onMarkAsRead={markAsRead} onClickNotification={trackClick} />
+          <NotificationList notifications={notifications} loading={loading} hasMore={hasMore} onLoadMore={loadMore} onMarkAsRead={markAsRead} onClickNotification={trackClick} onRemove={removeNotification} onReport={reportNotification} />
         )}
       </section>
     </div>

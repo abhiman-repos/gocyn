@@ -2,13 +2,16 @@ import React, { useRef, useEffect } from 'react';
 import NotificationItem from './NotificationItem';
 import NotificationEmpty from './NotificationEmpty';
 import { Notification } from '@/app/types/types';
+import type { NotificationReportReason } from '@/app/services/NotificationService';
 
 interface NotificationListProps {
   notifications: Notification[];
   loading: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
-  onMarkAsRead: (id: number) => void;
+  onMarkAsRead: (id: number, options?: { optimistic?: boolean }) => Promise<void> | void;
+  onRemove: (id: number) => Promise<void>;
+  onReport: (id: number, report: { reason: NotificationReportReason; feedback: string }) => Promise<void>;
   onClickNotification?: (id: number) => Promise<void> | void;
 }
 
@@ -18,6 +21,8 @@ const NotificationList: React.FC<NotificationListProps> = ({
   hasMore,
   onLoadMore,
   onMarkAsRead,
+  onRemove,
+  onReport,
   onClickNotification,
 }) => {
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -41,13 +46,15 @@ const NotificationList: React.FC<NotificationListProps> = ({
   }
 
   return (
-    <div className="max-h-96 overflow-y-auto">
+    <div>
       {notifications.map((notification) => (
         <NotificationItem
           key={notification.id}
           notification={notification}
           onMarkAsRead={onMarkAsRead}
           onClickNotification={onClickNotification}
+          onRemove={onRemove}
+          onReport={onReport}
         />
       ))}
       {loading && (

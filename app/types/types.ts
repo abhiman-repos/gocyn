@@ -16,6 +16,8 @@ export interface Notification {
   title: string;
   message: string;
   notification_type: string;
+  icon?: string;
+  image_url?: string | null;
   is_read: boolean;
   redirect_url?: string | null;
   created_at: string;
@@ -70,7 +72,8 @@ export interface Internship {
 }
 
 export interface Ad {
-  _id: string;         // ← changed from id to _id
+  _id: string;
+  placement?: "hero" | "modal";
   image: string;
   height?: string;
   width?: string;

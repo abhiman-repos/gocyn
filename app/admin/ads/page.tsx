@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Ad } from "@/app/types/types";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 interface AdForm {
+  placement: "hero" | "modal";
   image: string;
   height: string;
   width: string;
@@ -24,6 +25,7 @@ interface AdForm {
 }
 
 const EMPTY_AD: AdForm = {
+  placement: "modal",
   image: "",
   height: "",
   width: "",
@@ -324,6 +326,7 @@ export default function AdminAdsPage() {
   const handleEdit = (ad: Ad) => {
     setEditingAd(ad);
     setForm({
+      placement: ad.placement || "modal",
       image: ad.image || "",
       height: ad.height != null ? String(ad.height) : "",
       width: ad.width != null ? String(ad.width) : "",
@@ -389,6 +392,7 @@ export default function AdminAdsPage() {
     try {
       const fd = new FormData();
       if (form.imageFile) fd.append("image_file", form.imageFile);
+      fd.append("placement", form.placement);
       if (form.height) fd.append("height", form.height);
       if (form.width) fd.append("width", form.width);
       fd.append("buttonText", form.buttonText);
@@ -557,6 +561,7 @@ export default function AdminAdsPage() {
                 <tr className="border-b border-slate-100 bg-slate-50/60">
                   {[
                     "Preview",
+                    "Placement",
                     "Dimensions",
                     "Call to Action",
                     "Auto-close",
@@ -566,7 +571,7 @@ export default function AdminAdsPage() {
                   ].map((h, i) => (
                     <th
                       key={h}
-                      className={`px-5 py-3.5 sec ${i === 5 ? "text-right" : "text-left"}`}
+                      className={`px-5 py-3.5 sec ${i === 6 ? "text-right" : "text-left"}`}
                     >
                       {h}
                     </th>
@@ -577,7 +582,7 @@ export default function AdminAdsPage() {
                 {loading && [1, 2, 3].map((i) => <SkeletonRow key={i} />)}
                 {!loading && ads.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-6 py-20 text-center">
+                    <td colSpan={8} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center gap-3 text-slate-400">
                         <span className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
                           <IconImage />
@@ -615,6 +620,7 @@ export default function AdminAdsPage() {
                         </div>
                       )}
                     </td>
+                    <td className="px-5 py-4"><span className={`tag ${ad.placement === "hero" ? "bg-indigo-50 text-indigo-700" : "bg-slate-100 text-slate-600"}`}>{ad.placement === "hero" ? "Homepage hero" : "Popup ad"}</span></td>
                     <td className="px-5 py-4">
                       {ad.height || ad.width ? (
                         <span className="tag bg-slate-100 text-slate-600">
@@ -743,6 +749,16 @@ export default function AdminAdsPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="px-7 py-6 space-y-7">
+              <div>
+                <p className="sec">Poster placement</p>
+                <label className="block text-xs text-slate-500 mb-1.5" htmlFor="poster-placement">Where should this poster appear?</label>
+                <select id="poster-placement" value={form.placement} onChange={(e) => setForm({ ...form, placement: e.target.value as "hero" | "modal" })} className="inp">
+                  <option value="hero">Homepage hero — latest event poster</option>
+                  <option value="modal">Popup ad</option>
+                </select>
+                <p className="mt-1 text-xs text-slate-500">Hero posters appear in the homepage banner. Their views, clicks, and click-through rate are shown in Poster analytics.</p>
+              </div>
+
               {/* ── Section 1: Dimensions FIRST (before upload) ── */}
               <div>
                 <p className="sec">Step 1 — Choose dimensions</p>

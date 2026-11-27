@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { ArrowLeft, KeyRound } from "lucide-react";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 function errorMessage(data: Record<string, any>): string {
   const value = data.detail ?? data.error ?? data.new_password ?? data.current_password ?? data.message;

@@ -11,7 +11,7 @@ const NotificationsPage: React.FC = () => {
   const router = useRouter();
   const [authChecked, setAuthChecked] = useState(false);
   const [instructorAudience, setInstructorAudience] = useState(false);
-  const { notifications, loading, hasMore, loadMore, markAsRead, trackClick } =
+  const { notifications, loading, error, refresh, hasMore, loadMore, markAsRead, removeNotification, reportNotification, trackClick } =
     useNotifications();
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const NotificationsPage: React.FC = () => {
       router.replace(instructorAudience ? "/instructors/login?next=%2Fnotifications%3Faudience%3Dinstructor" : "/login?next=%2Fnotifications");
       return;
     }
-    const base = process.env.APP_URL?.replace(/\/+$/, "");
+    const base = (process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === "production" ? "https://api.gocyn.com" : "http://localhost:8000")).replace(/\/+$/, "");
     const endpoint = instructorAudience ? "/api/instructors/me/" : "/api/auth/me/";
     fetch(`${base}${endpoint}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
       .then((response) => {
@@ -39,7 +39,7 @@ const NotificationsPage: React.FC = () => {
 
   if (!authChecked) return <div className="min-h-[50vh]" aria-busy="true" />;
 
-  const isEmpty = !loading && notifications.length === 0;
+  const isEmpty = !loading && !error && notifications.length === 0;
 
   return (
     <div className="min-h-[calc(100vh-180px)] bg-gray-50/50">
@@ -56,11 +56,15 @@ const NotificationsPage: React.FC = () => {
           </div>
         </div>
 
+        {error && <div role="alert" className="mb-5 flex flex-col gap-3 border border-red-200 bg-red-50 p-4 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between"><span>Could not load notifications: {error}</span><button type="button" onClick={() => void refresh()} className="w-fit border border-red-300 bg-white px-3 py-1.5 font-semibold text-red-800 hover:bg-red-100">Try again</button></div>}
+
         {instructorAudience && <InstructorNotificationPreference />}
 
         {/* Content Card */}
         <div className="overflow-hidden">
-          {isEmpty ? (
+          {error ? (
+            <div className="py-8 text-center text-sm text-gray-500">Use the message above to retry loading your notifications.</div>
+          ) : isEmpty ? (
             /* Professional Empty State */
             <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
               <div className="w-26 h-26 flex items-center justify-center mb-5">
@@ -95,6 +99,8 @@ const NotificationsPage: React.FC = () => {
               onLoadMore={loadMore}
               onMarkAsRead={markAsRead}
               onClickNotification={trackClick}
+              onRemove={removeNotification}
+              onReport={reportNotification}
             />
           )}
         </div>

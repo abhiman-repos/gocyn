@@ -50,7 +50,7 @@ export default function AdminLayout({
         setAuthState(true);
       }
       try {
-        const response = await fetch(process.env.APP_URL + "/api/admin/session/", {
+        const response = await fetch(process.env.NEXT_PUBLIC_APP_URL + "/api/admin/session/", {
           headers: { Authorization: "Bearer " + token }, cache: "no-store",
         });
         if (response.status === 401 || response.status === 403) {

@@ -1,13 +1,16 @@
 import axios from 'axios';
 import { Notification } from '../types/types';
+import { refreshStudentAccessToken } from '@/src/lib/studentAuth';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || (
+  process.env.NODE_ENV === 'production' ? 'https://api.gocyn.com' : 'http://localhost:8000'
+);
 
 const api = axios.create({
-  baseURL: process.env.APP_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // if using cookies for auth
 });
 
 // Add interceptor to include token if stored in localStorage
@@ -25,9 +28,34 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   const prefix = instructorAudience ? '/api/instructors' : '/api';
-  config.url = `${prefix}${config.url || '/'}`;
+  if (!String(config.url || '').startsWith('/api/')) {
+    config.url = `${prefix}${config.url || '/'}`;
+  }
   return config;
 });
+
+// Student access tokens expire after 30 minutes. Refresh and retry notification
+// requests once so an expired token does not leave the bell stuck on 401.
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error?.config;
+    const isInstructorRequest = String(config?.url || '').startsWith('/api/instructors/');
+    if (error?.response?.status !== 401 || !config || config._notificationRetry || isInstructorRequest) {
+      return Promise.reject(error);
+    }
+
+    config._notificationRetry = true;
+    try {
+      const token = await refreshStudentAccessToken(API_BASE_URL);
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+      return api.request(config);
+    } catch (refreshError) {
+      return Promise.reject(refreshError);
+    }
+  },
+);
 
 export const getNotifications = async (params?: { page?: number; page_size?: number }) => {
   const response = await api.get('/notifications/', { params });
@@ -60,6 +88,20 @@ export const deleteNotification = async (id: number): Promise<void> => {
   await api.delete(`/notifications/${id}/`);
 };
 
+export type NotificationReportReason = "spam" | "misleading" | "inappropriate" | "broken_link" | "duplicate" | "other";
+
+export const reportNotification = async (
+  id: number,
+  report: { reason: NotificationReportReason; feedback: string },
+): Promise<void> => {
+  try {
+    await api.post(`/notifications/${id}/report/`, report);
+  } catch (error: any) {
+    const detail = error?.response?.data?.detail;
+    throw new Error(detail || "We could not submit your report. Please try again.");
+  }
+};
+
 export interface NotificationPreferences {
   in_app_enabled: boolean;
 }
@@ -78,8 +120,7 @@ async function instructorPreferenceRequest(method: "GET" | "PATCH", preferences?
   if (typeof window === "undefined") throw new Error("Instructor preferences are only available in the browser.");
   const token = localStorage.getItem("mentorToken");
   if (!token) throw new Error("Your instructor session has expired. Please sign in again.");
-  const base = process.env.APP_URL?.replace(/\/+$/, "");
-  if (!base) throw new Error("The API URL is not configured.");
+  const base = API_BASE_URL.replace(/\/+$/, "");
 
   const response = await fetch(`${base}/api/instructors/notifications/preferences/`, {
     method,

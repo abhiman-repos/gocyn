@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 
-const API =  process.env.APP_URL;
+const API =  process.env.NEXT_PUBLIC_APP_URL;
 
 type RequestStatus = "pending" | "approved" | "rejected";
 

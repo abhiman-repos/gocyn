@@ -15,7 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 interface PartnerDetails {
   _id: string;

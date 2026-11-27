@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import AnalyticsChart from "@/src/components/pages/AnalyticsChart";
 
-const API = process.env.APP_URL || "";
+const API = (process.env.NEXT_PUBLIC_APP_URL || "https://api.gocyn.com").replace(/\/+$/, "");
 const inr = (value: string | number) => "₹" + Number(value || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 async function readJson(response: Response) {
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.detail || "Request failed.");
+  if (!response.ok) {
+    const detail = data.detail || data.message;
+    throw new Error(detail || `Request failed (${response.status}) at ${response.url}`);
+  }
   return data;
 }
 

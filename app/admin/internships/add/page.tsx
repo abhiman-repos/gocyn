@@ -30,7 +30,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-const API = process.env.APP_URL;
+import { APP_API_BASE, LEGACY_API_BASE } from "@/src/lib/apiBases";
+const API = APP_API_BASE;
 
 export default function AddInternship({
   initialData,
@@ -130,7 +131,7 @@ export default function AddInternship({
         const formDataImg = new FormData();
         formDataImg.append("image", image);
 
-        const res = await fetch(`${API}/upload/internship/images/`, {
+        const res = await fetch(`${LEGACY_API_BASE}/upload/internship/images/`, {
           method: "POST",
           body: formDataImg,
         });
@@ -152,7 +153,7 @@ export default function AddInternship({
 
       let res;
       if (!isEditMode) {
-        res = await fetch(`${API}/upload/internship/`, {
+        res = await fetch(`${LEGACY_API_BASE}/upload/internship/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(finalData),
@@ -160,7 +161,7 @@ export default function AddInternship({
         if (!res.ok) throw new Error("Create failed");
         toast.success("Internship created!");
       } else {
-        res = await fetch(`${API}/upload/update_internship/${internshipId}/`, {
+        res = await fetch(`${LEGACY_API_BASE}/upload/update_internship/${internshipId}/`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(finalData),

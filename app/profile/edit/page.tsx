@@ -15,7 +15,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import Cropper, { Area } from "react-easy-crop";
 import { Camera, User as UserIcon, X, Loader2 } from "lucide-react";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 const fieldClass =
   "block w-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-600 focus:outline-none";
@@ -550,7 +550,7 @@ export default function EditProfile() {
     setUsingCached(false);
 
     if (!API) {
-      setFetchError("API URL is not configured (APP_URL).");
+      setFetchError("API URL is not configured (NEXT_PUBLIC_APP_URL).");
       setFetching(false);
       return;
     }

@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext"; // adjust path if needed
 import { getNotificationPreferences, updateNotificationPreferences } from "@/app/services/NotificationService";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"notifications" | "account">(

@@ -23,7 +23,7 @@ type CouponForm = {
   max_redemptions: string;
 };
 
-const API = (process.env.APP_URL || "http://localhost:8000").replace(/\/+$/, "");
+const API = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000").replace(/\/+$/, "");
 const emptyForm: CouponForm = {
   code: "",
   discount_type: "percent",

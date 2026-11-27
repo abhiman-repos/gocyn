@@ -30,8 +30,9 @@ import HeroPanels from "@/src/components/Heropanel";
 import CourseCard from "@/src/components/pages/CourseCard";
 import { RecommendedCoursesSection, TrendingCoursesSection } from "@/src/components/CourseSection";
 import CourseSponsorSection from "@/src/components/CourseSponsorSection";
+import { LEGACY_API_BASE } from "@/src/lib/apiBases";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 // Background Images
 
@@ -106,7 +107,7 @@ export default function Home() {
       };
 
       const [internshipResult, mentorResult, courseResult] = await Promise.allSettled([
-        fetchList(`${API}/upload/internships/list/`, "internships"),
+        fetchList(`${LEGACY_API_BASE}/upload/internships/list/`, "internships"),
         fetchList(`${API}/api/mentors/list/`, "mentors"),
         fetchList(`${API}/api/courses/list/`, "courses"),
       ]);
@@ -145,7 +146,25 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/50 z-10 pointer-events-none" />{" "}
         </div>
 
-        {/* Content */}
+        <div className="relative z-[1000000] mx-auto max-w-4xl py-20 text-white">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-white/85">
+            Learn. Practice. Move forward.
+          </p>
+          <h1 className="text-5xl font-black leading-[1.05] tracking-tight drop-shadow-lg sm:text-6xl md:text-8xl">
+            Explore more,<br />Grow more!
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-white/90 drop-shadow-md sm:text-lg">
+            Build practical skills with courses, instructors, mentorship, and internships.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/courses" className="bg-white px-6 py-3 text-sm font-bold text-slate-950 transition-colors hover:bg-slate-100">
+              Explore courses
+            </Link>
+            <Link href="/mentors" className="border border-white/80 bg-black/20 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/10">
+              Meet instructors
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* STATS SECTION - Responsive */}
@@ -259,7 +278,7 @@ export default function Home() {
             {/* Steps remain same - only gap adjusted */}
             <motion.div
               whileHover={{ y: -10 }}
-              className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 text-center group"
+              className="bg-white p-8 md:p-10 shadow-sm border border-gray-100 text-center group"
             >
               <div className="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center mx-auto mb-6 transform -rotate-6 group-hover:rotate-0 transition-transform shadow-lg shadow-blue-200">
                 <Search size={36} />
@@ -275,7 +294,7 @@ export default function Home() {
 
             <motion.div
               whileHover={{ y: -10 }}
-              className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 text-center group"
+              className="bg-white p-8 md:p-10 shadow-sm border border-gray-100 text-center group"
             >
               <div className="w-20 h-20 bg-purple-600 text-white rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-6 group-hover:rotate-0 transition-transform shadow-lg shadow-purple-200">
                 <Zap size={36} />
@@ -291,7 +310,7 @@ export default function Home() {
 
             <motion.div
               whileHover={{ y: -10 }}
-              className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 text-center group"
+              className="bg-white p-8 md:p-10 shadow-sm border border-gray-100 text-center group"
             >
               <div className="w-20 h-20 bg-green-600 text-white rounded-3xl flex items-center justify-center mx-auto mb-6 transform -rotate-3 group-hover:rotate-0 transition-transform shadow-lg shadow-green-200">
                 <Briefcase size={36} />

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
 import { useEffect, useState } from "react";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 export default function GoogleAuthButton() {
   const router = useRouter();
@@ -46,6 +46,7 @@ export default function GoogleAuthButton() {
           const data = res.data;
 
           const accessToken = data.access ?? data.token ?? data.access_token;
+          const refreshToken = data.refresh;
           // Extract token and user from backend response
           const { token, user } = res.data;
 
@@ -56,6 +57,9 @@ export default function GoogleAuthButton() {
           }
 
           localStorage.setItem("token", accessToken);
+          if (refreshToken) {
+            localStorage.setItem("refresh", refreshToken);
+          }
 
           if (data.user){
             setUser(data.user);

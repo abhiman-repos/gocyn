@@ -25,7 +25,7 @@ import { FaHandsHelping, FaSuitcase } from "react-icons/fa";
 
 type AuthMode = "signin" | "signup";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 interface MentorSignupData {
   fullName: string;

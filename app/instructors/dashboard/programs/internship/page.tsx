@@ -14,8 +14,8 @@ import {
   MdArrowBack,
 } from "react-icons/md";
 import Link from "next/link";
+import { LEGACY_API_BASE } from "@/src/lib/apiBases";
 
-const API = process.env.APP_URL;
 
 // --- Validation Schema ---
 const internshipSchema = z.object({
@@ -87,7 +87,7 @@ export default function CreateInternshipPage() {
       }
 
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API}/upload/internships/create/`, {
+      const res = await fetch(`${LEGACY_API_BASE}/upload/internships/create/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -27,7 +27,7 @@ import {
 } from "@/src/components/ui/select";
 import { motion } from "framer-motion";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 export default function AddMentor({
   initialData,

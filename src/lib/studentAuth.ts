@@ -38,7 +38,7 @@ async function performAccessTokenRefresh(apiBase: string): Promise<string> {
 
 let refreshInFlight: Promise<string> | null = null;
 
-function refreshStudentAccessToken(apiBase: string): Promise<string> {
+export function refreshStudentAccessToken(apiBase: string): Promise<string> {
   if (!refreshInFlight) {
     refreshInFlight = performAccessTokenRefresh(apiBase).finally(() => {
       refreshInFlight = null;

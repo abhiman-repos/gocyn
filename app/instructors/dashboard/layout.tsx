@@ -411,7 +411,7 @@ lg:translate-x-0
           </div>
 
           <div className="absolute right-5 top-1/2 hidden -translate-y-1/2 lg:block">
-            <InstructorNotificationBell />
+            {pathname !== "/instructors/dashboard/notifications" && <InstructorNotificationBell />}
           </div>
 
           {/* Mobile Layout */}
@@ -442,7 +442,7 @@ lg:translate-x-0
             </div>
 
             <div className="flex w-10 justify-end">
-              <InstructorNotificationBell />
+              {pathname !== "/instructors/dashboard/notifications" && <InstructorNotificationBell />}
             </div>
           </div>
         </header>

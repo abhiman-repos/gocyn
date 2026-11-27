@@ -13,9 +13,12 @@ export default function InstructorNotificationBell() {
     notifications,
     unreadCount,
     loading,
+    error,
     hasMore,
     loadMore,
     markAsRead,
+    removeNotification,
+    reportNotification,
     trackClick,
     markAllAsRead,
     refresh,
@@ -23,6 +26,7 @@ export default function InstructorNotificationBell() {
 
   useEffect(() => {
     const closeWhenOutside = (event: MouseEvent) => {
+      if (event.target instanceof Element && event.target.closest('[data-notification-portal="true"]')) return;
       if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
@@ -32,9 +36,7 @@ export default function InstructorNotificationBell() {
   }, []);
 
   const toggle = () => {
-    const nextOpen = !isOpen;
-    setIsOpen(nextOpen);
-    if (nextOpen) void refresh();
+    setIsOpen((open) => !open);
   };
 
   return (
@@ -55,9 +57,13 @@ export default function InstructorNotificationBell() {
           notifications={notifications}
           unreadCount={unreadCount}
           loading={loading}
+          error={error}
+          onRefresh={refresh}
           hasMore={hasMore}
           onLoadMore={loadMore}
           onMarkAsRead={markAsRead}
+          onRemove={removeNotification}
+          onReport={reportNotification}
           onClickNotification={trackClick}
           onMarkAllAsRead={markAllAsRead}
           onClose={() => setIsOpen(false)}

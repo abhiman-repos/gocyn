@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaAward, FaCheckCircle, FaSearch, FaShieldAlt, FaTimesCircle } from "react-icons/fa";
 
-const API = (process.env.APP_URL || "http://localhost:8000").replace(/\/+$/, "");
+import { APP_API_BASE, LEGACY_API_BASE } from "@/src/lib/apiBases";
+const API = APP_API_BASE || "http://localhost:8000";
 async function fetchCertificateRecord(certificateId: string): Promise<Certificate> {
   const encodedId = encodeURIComponent(certificateId.toLowerCase());
   const legacyId = encodeURIComponent(certificateId);
@@ -16,7 +17,7 @@ async function fetchCertificateRecord(certificateId: string): Promise<Certificat
     throw new Error(courseData.detail || courseData.message || "Certificate verification failed.");
   }
 
-  const legacyResponse = await fetch(`${API}/upload/verify/${legacyId}/`, { cache: "no-store" });
+  const legacyResponse = await fetch(`${LEGACY_API_BASE || API}/upload/verify/${legacyId}/`, { cache: "no-store" });
   const legacyData = await legacyResponse.json().catch(() => ({}));
   if (!legacyResponse.ok) {
     throw new Error(legacyData.detail || legacyData.message || "No certificate was found with that ID.");

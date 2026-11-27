@@ -36,8 +36,9 @@ import { toast } from "sonner";
 import { Plus, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CourseUploadStepper from "@/src/components/CourseUploadStepper";
+import { LEGACY_API_BASE } from "@/src/lib/apiBases";
 
-const API = process.env.APP_URL;
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 // --- Types ---
 interface Internship {
@@ -107,7 +108,7 @@ export default function ProgramsDashboard() {
       setCourseError("");
       const mentorToken = localStorage.getItem("mentorToken");
       const [internRes, courseRes] = await Promise.all([
-        fetch(`${API}/upload/internships/list/`).catch(() => null),
+        fetch(`${LEGACY_API_BASE}/upload/internships/list/`).catch(() => null),
         fetch(`${API}/api/instructors/courses/`, { headers: mentorToken ? { Authorization: `Bearer ${mentorToken}` } : {} }).catch(() => null),
       ]);
       const internshipsData = internRes?.ok ? await internRes.json().catch(() => []) : [];
@@ -152,7 +153,7 @@ export default function ProgramsDashboard() {
     if (!deleteId || !deleteType) return;
     const mentorToken = localStorage.getItem("mentorToken");
     const endpoint = deleteType === "internship"
-      ? `${API}/upload/delete_internship/${deleteId}/`
+      ? `${LEGACY_API_BASE}/upload/delete_internship/${deleteId}/`
       : `${API}/api/instructors/courses/${deleteId}/`;
 
     try {

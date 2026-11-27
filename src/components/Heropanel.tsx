@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { Fraunces, Manrope, IBM_Plex_Mono } from "next/font/google";
 import { ChevronLeft, ChevronRight } from "lucide-react"; // 🟢 Icons import kiye
 import styles from "./Heropanels.module.css";
+import type { Ad } from "@/app/types/types";
+
+const API = process.env.NEXT_PUBLIC_APP_URL;
 
 // ---------- Fonts ----------
 const fraunces = Fraunces({
@@ -32,6 +35,9 @@ type Track = {
   index: string;
   src: string;
   alt: string;
+  adId?: string;
+  buttonLink?: string;
+  buttonText?: string;
 };
 
 // ---------- Data ----------
@@ -69,7 +75,47 @@ const INTERVAL_MS = 3400;
 export default function HeroPanels({ className }: { className?: string }) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [heroAds, setHeroAds] = useState<Ad[]>([]);
+  const viewedAds = useRef(new Set<string>());
+  const tracks: Track[] = heroAds.length ? heroAds.map((ad, index) => ({
+    index: String(index + 1).padStart(2, "0"),
+    src: ad.image,
+    alt: ad.buttonText || "Latest event poster",
+    adId: ad._id,
+    buttonLink: ad.buttonLink,
+    buttonText: ad.buttonText,
+  })) : TRACKS;
   const direction = useRef<1 | -1>(1);
+
+  useEffect(() => {
+    if (!API) return;
+    let cancelled = false;
+    const loadHeroPosters = async () => {
+      try {
+        const response = await fetch(`${API}/api/admin/ads/active/?placement=hero`, { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled && Array.isArray(data)) {
+          setHeroAds(data.filter((ad: Ad) => ad.image));
+          setActive(0);
+        }
+      } catch (error) {
+        console.error("Could not load homepage event posters:", error);
+      }
+    };
+    void loadHeroPosters();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const ad = heroAds[active];
+    if (!ad?._id || viewedAds.current.has(ad._id) || !API) return;
+    viewedAds.current.add(ad._id);
+    void fetch(`${API}/api/admin/ads/${ad._id}/events/`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "view" }), keepalive: true,
+    }).catch(() => undefined);
+  }, [active, heroAds]);
 
   // Detect mobile screen properly (specifically < 640px)
   const [isMobile, setIsMobile] = useState(false);
@@ -94,9 +140,9 @@ export default function HeroPanels({ className }: { className?: string }) {
     const id = setInterval(() => {
       setActive((prev) => {
         let next = prev + direction.current;
-        if (next >= TRACKS.length - 1) {
+        if (next >= tracks.length - 1) {
           direction.current = -1;
-          next = TRACKS.length - 1;
+          next = tracks.length - 1;
         } else if (next <= 0) {
           direction.current = 1;
           next = 0;
@@ -106,10 +152,10 @@ export default function HeroPanels({ className }: { className?: string }) {
     }, INTERVAL_MS);
 
     return () => clearInterval(id);
-  }, [paused]);
+  }, [paused, tracks.length]);
 
   // Clamped centering math
-  const totalWidthPct = (TRACKS.length - 1) * base + large;
+  const totalWidthPct = (tracks.length - 1) * base + large;
   const maxShiftPct = Math.max(totalWidthPct - 100, 0);
 
   const prevWidthsPct = active * base;
@@ -121,13 +167,13 @@ export default function HeroPanels({ className }: { className?: string }) {
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
     setPaused(true); // Click karne par autoplay pause ho jayega
-    setActive((prev) => (prev === 0 ? TRACKS.length - 1 : prev - 1));
+    setActive((prev) => (prev === 0 ? tracks.length - 1 : prev - 1));
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
     setPaused(true);
-    setActive((prev) => (prev === TRACKS.length - 1 ? 0 : prev + 1));
+    setActive((prev) => (prev === tracks.length - 1 ? 0 : prev + 1));
   };
 
   return (
@@ -139,7 +185,7 @@ export default function HeroPanels({ className }: { className?: string }) {
           className={styles.stripInner}
           style={{ transform: `translateX(-${shiftPct}%)` }}
         >
-          {TRACKS.map((track, i) => {
+          {tracks.map((track, i) => {
             const isActive = i === active;
             return (
               <button
@@ -154,6 +200,13 @@ export default function HeroPanels({ className }: { className?: string }) {
                 onClick={() => {
                   setPaused(true);
                   setActive(i);
+                  if (track.adId && track.buttonLink && API) {
+                    void fetch(`${API}/api/admin/ads/${track.adId}/events/`, {
+                      method: "POST", headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ kind: "click" }), keepalive: true,
+                    }).catch(() => undefined);
+                    window.location.assign(track.buttonLink);
+                  }
                 }}
                 onTouchStart={() => {
                   setPaused(true);
@@ -168,18 +221,22 @@ export default function HeroPanels({ className }: { className?: string }) {
                 onMouseLeave={() => setPaused(false)}
                 onBlur={() => setPaused(false)}
               >
-                <Image
-                  src={track.src}
-                  alt={track.alt}
-                  fill
-                  sizes="(max-width: 640px) 70vw, (max-width: 1024px) 50vw, 40vw"
-                  className={styles.image}
-                  priority={i === 0}
-                />
+                {track.adId ? (
+                  <img src={track.src} alt={track.alt} className={`${styles.image} absolute inset-0 h-full w-full object-cover`} />
+                ) : (
+                  <Image
+                    src={track.src}
+                    alt={track.alt}
+                    fill
+                    sizes="(max-width: 640px) 70vw, (max-width: 1024px) 50vw, 40vw"
+                    className={styles.image}
+                    priority={i === 0}
+                  />
+                )}
                 <span className={styles.index}>{track.index}</span>
                 <div
                   className={`${styles.caption} ${isActive ? styles.captionVisible : ""}`}
-                />
+                >{isActive && track.buttonText ? <span className={styles.captionTitle}>{track.buttonText}</span> : null}</div>
               </button>
             );
           })}

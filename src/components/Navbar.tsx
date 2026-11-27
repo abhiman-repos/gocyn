@@ -535,7 +535,7 @@ export default function Navbar() {
                       >
                         Setting
                       </Link>
-                      <NotificationBell />
+                      {pathname !== "/notifications" && <NotificationBell />}
                     </>
                   ) : (
                     <>
@@ -593,7 +593,7 @@ export default function Navbar() {
                 >
                   <FiSearch size={22} />
                 </button>
-                {user && <NotificationBell />}
+                {user && pathname !== "/notifications" && <NotificationBell />}
                 <button
                   onClick={() => setIsOpen(!isOpen)}
                   aria-label={isOpen ? "Close Menu" : "Open Menu"}
