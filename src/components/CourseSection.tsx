@@ -119,7 +119,7 @@ export function RecommendedCoursesSection({
       setLoading(true);
       try {
         const params = new URLSearchParams({ q: query, type: "course", limit: "8" });
-        const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/search/semantic/?${params}`, {
+        const response = await fetch(`${process.env.APP_URL}/api/search/semantic/?${params}`, {
           signal: controller.signal,
           cache: "no-store",
         });

@@ -26,7 +26,7 @@ import {
   type InstructorMe,
 } from "@/src/components/libs/instructors";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 type Profile = Omit<InstructorMe, "expertise"> & {
   expertise: string[] | string;
   current_role: string;

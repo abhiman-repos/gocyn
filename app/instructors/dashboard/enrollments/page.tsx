@@ -34,7 +34,7 @@ type Enrollment = {
   certificate_id?: string | null;
   certificate_delivery: "automatic" | "manual";
 };
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);

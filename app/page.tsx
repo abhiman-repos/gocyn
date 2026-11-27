@@ -32,7 +32,7 @@ import { RecommendedCoursesSection, TrendingCoursesSection } from "@/src/compone
 import CourseSponsorSection from "@/src/components/CourseSponsorSection";
 import { LEGACY_API_BASE } from "@/src/lib/apiBases";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 // Background Images
 

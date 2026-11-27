@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 type ContentType = "all" | "course" | "mentor";
 type SearchItem = {
   id: string;

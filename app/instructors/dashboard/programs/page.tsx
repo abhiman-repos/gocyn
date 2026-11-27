@@ -38,7 +38,7 @@ import { useRouter } from "next/navigation";
 import CourseUploadStepper from "@/src/components/CourseUploadStepper";
 import { LEGACY_API_BASE } from "@/src/lib/apiBases";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 
 // --- Types ---
 interface Internship {

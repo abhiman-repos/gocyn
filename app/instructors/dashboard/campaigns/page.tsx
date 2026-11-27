@@ -5,7 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { BadgeIndianRupee, CheckCircle2, Megaphone, ReceiptText } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL || "";
+const API = process.env.APP_URL || "";
 const localInputDate = (date: Date) => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 const fmt = (date?: string) => date ? new Date(date).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—";
 const inr = (paise: number) => `₹${(Number(paise || 0) / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

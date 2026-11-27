@@ -65,7 +65,7 @@ export default function RootLayout({
         className={`${inter.className} min-h-screen bg-[#F9FAFB] text-[#111827]`}
       >
         <GoogleOAuthProvider
-          clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
+          clientId={process.env.GOOGLE_CLIENT_ID!}
         >
           <AuthProvider>
             <Suspense fallback={null}>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 type Invoice = { invoice_id: string; invoice_number: string; course_id: string; course_title: string; billing_address: Record<string, string>; list_amount_paise: number; discount_amount_paise: number; paid_amount_paise: number; issued_at: string };
 const rupees = (value: number) => `₹${(value / 100).toFixed(2)}`;
 

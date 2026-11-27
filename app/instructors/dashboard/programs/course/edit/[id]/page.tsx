@@ -6,7 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Share2 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_APP_URL;
+const API = process.env.APP_URL;
 type Draft = {
   title: string;
   description: string;

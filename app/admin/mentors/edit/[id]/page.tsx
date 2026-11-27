@@ -6,7 +6,7 @@ import AddMentor from "../../add/page";
 import { motion } from "motion/react";
 
 
-const API = process.env.NEXT_PUBLIC_APP_URL
+const API = process.env.APP_URL
 
 export default function EditMentorPage() {
   const { id } = useParams();
